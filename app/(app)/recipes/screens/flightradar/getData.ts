@@ -45,7 +45,15 @@ export interface DisplayData {
 }
 
 async function getFlightInZone(bottom_left: Location, top_right: Location) : Promise<ForeignFlightData[]> {
-    const response = await fetch(`https://globe.adsbexchange.com/re-api/?binCraft&zstd&box=${bottom_left.lat},${top_right.lat},${bottom_left.long},${top_right.long}`)
+    const response = await fetch(
+        `https://globe.adsbexchange.com/re-api/?binCraft&zstd&box=${bottom_left.lat},${top_right.lat},${bottom_left.long},${top_right.long}`,
+        {
+            headers: {
+                "referer": "https://globe.adsbexchange.com/",
+                "User-Agent": "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+            }
+        }
+    )
     if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
     }
@@ -53,5 +61,7 @@ async function getFlightInZone(bottom_left: Location, top_right: Location) : Pro
     const decompressor = new Decompressor();
     await decompressor.init();
     const result = decompressor.decompress(body);
+    const total_size = result.length;
+    const entries = total_size / 112 - 1;
     throw new Error("Not implemented yet");
 }
