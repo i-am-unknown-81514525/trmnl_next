@@ -31,7 +31,7 @@ export interface Airport {
 type TrackingKind =
     | { kind: 'static_location', location: Location }
     | { kind: 'static_airport', airport: Airport }
-    | { kind: 'K3'; flight: FlightData };
+    | { kind: 'flight'; flight: FlightData };
 
 export interface DisplayData {
     tracking: TrackingKind,
