@@ -64,8 +64,19 @@ async function getFlightInZone(bottom_left: Location, top_right: Location) : Pro
     const body = await response.bytes();
     const decompressor = new Decompressor();
     await decompressor.init();
-    const result = decompressor.decompress(body);
-    const total_size = result.length;
-    const entries = total_size / 112 - 1;
-    throw new Error("Not implemented yet");
+    const data = decompressor.decompress(body);
+    const total_size = data.length;
+    const entries = (total_size / 112) - 1;
+    const arr: ForeignFlightData[] = [];
+    for (let i = 1; i <= entries; i++) { // it is start at 1 and end at entries inclusively because the first
+        // one should be discarded, as evidence by the -1 in entries.
+        const base = 112*i;
+        const hex_int = data[base+2] * 65536 + data[base+3] * 256 + data[base+4];
+        const hex = hex_int.toString(16);
+        const long = data[base+8] * (2**24) + data[base+9] * (2**16) + data[base+10] * (2**8) + data[base+11] / 1e6;
+        const lat = data[base+12] * (2**24) + data[base+13] * (2**16) + data[base+14] * (2**8) + data[base+15] / 1e6;
+        const callsign = (new TextDecoder()).decode(data.subarray(base+78, base+78+8)).trim();
+        arr.push({id: {hex, callsign, fr24_hex8: null}, loc: {lat, long}});
+    }
+   return arr;
 }
