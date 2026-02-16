@@ -8,23 +8,27 @@ export interface Location {
     long: number
 }
 
-export interface ForeignFlightData {
+export interface FlightID {
+    hex: string,
     callsign: string,
+    fr24_hex8: string | null;
+}
+
+export interface ForeignFlightData {
+    id: FlightID
     loc: Location
 }
 
 export interface Trail {
     loc: Location,
     speed: number,
-    height: number
+    height: number,
+    track: number
 }
 
 export interface FlightData {
-    callsign: string,
-    loc: Location,
-    speed: number,
-    height: number,
-    track: number,
+    id: FlightID
+    current: Trail
     trail: Trail[]
 }
 
