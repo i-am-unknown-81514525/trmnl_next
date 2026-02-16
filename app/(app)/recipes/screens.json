@@ -188,5 +188,32 @@
 		},
 		"version": "1.0.0",
 		"category": "system-components"
+	},
+	"flightradar": {
+		"title": "Flight Tracking",
+		"published": false,
+		"createdAt": "2026-02-16T15:00:00Z",
+		"updatedAt": "2026-02-16T15:00:00Z",
+		"description": "Track specific flight or flight nearby.",
+		"componentPath": "./screens/flightradar",
+		"hasDataFetch": true,
+		"props": {
+			"slug": ""
+		},
+		"params": {
+			"locParam": {
+				"type": "string",
+				"label": "Location Parameter",
+				"description": "Location Parameter: (loc:lat,long, airport:code, flight:callsign)",
+				"default": "airport:LHR"
+			}
+		},
+		"tags": ["flight", "api", "live-data", "configurable"],
+		"author": {
+			"name": "iau",
+			"github": "https://github.com/i-am-unknown-81514525"
+		},
+		"version": "1.0.0",
+		"category": "display-components"
 	}
 }
