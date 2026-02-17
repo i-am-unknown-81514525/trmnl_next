@@ -65,8 +65,21 @@ export interface FR24SearchEntry {
 }
 
 export interface FR24SearchResult {
-    result: FR24SearchEntry,
+    result: FR24SearchEntry[],
     info: {grpcEnabled: true},
     stats: {total: FR24ResultStats, count: FR24ResultStats}
 }
 
+export function getLive(callsign: string, result: FR24SearchResult) : {id: string, label: string, detail: FR24LiveDetail, type: ResultType, match: MatchType, name: string} | null {
+    for (let i = 0; i < result.result.length; i++) {
+        const entry: FR24SearchEntry = result.result[i];
+        if (entry.type !== "live") {
+            continue;
+        }
+        const detail: FR24LiveDetail = <FR24LiveDetail>entry.detail;
+        if (detail.callsign === callsign) {
+            return {id: entry.id, label: entry.label, detail: detail, type: entry.type, match: entry.match, name: entry.name};
+        }
+    }
+    return null;
+}
