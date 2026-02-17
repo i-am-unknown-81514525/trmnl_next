@@ -138,3 +138,9 @@ async function getTrailADSBExchange(id: FlightID) : Promise<Trail[]> {
     }
     return arr;
 }
+
+async function getTrailFR24(id: FlightID) : Promise<Trail[]> {
+    id = await getFr24Hex(id);
+    const response = await fetch(`https://api.flightradar24.com/common/v1/flight-playback.json?flightId=${id.fr24_hex8}&timestamp=0`);
+    throw new Error("Not implemented");
+}
