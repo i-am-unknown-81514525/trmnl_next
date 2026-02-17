@@ -111,6 +111,11 @@ export interface TrackEntry {
     ems: null | any
 }
 
+export interface Thumbnail {
+    src: string,
+    link: string
+}
+
 export interface FR24PlaybackResult {
     result: {
         response: {
@@ -133,9 +138,13 @@ export interface FR24PlaybackResult {
                         real: Airport | null // diversion
                     },
                     median?: MedianTimeData,
-                    track?: TrackEntry[]
+                    track?: TrackEntry[],
+                    aircraftImage?: {
+                        sideview: string,
+                        thumbnails: Thumbnail[]
+                    },
+                    availability: {ems: boolean}
                 }
-                aircraftImage: {}
             }
         }
     }
