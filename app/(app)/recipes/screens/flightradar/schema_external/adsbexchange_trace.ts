@@ -1,7 +1,7 @@
 type TimeOffset = number;
 type Latitude = number | null;
 type Longitude = number | null;
-type BaroAlt = number;
+type BaroAlt = number | "ground";
 type GroudSpeed = number | null;
 type Track = number | null;
 type StatusFlag = number;

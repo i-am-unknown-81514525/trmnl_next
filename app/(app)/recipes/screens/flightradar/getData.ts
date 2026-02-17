@@ -1,6 +1,7 @@
 import { Decompressor } from 'zstd-wasm';
 import {getLive, FR24SearchResult} from './schema_external/fr24search';
 import {ForeignFlightData, FlightID, Location, Trail} from "./schema";
+import {Trace} from "./schema_external/adsbexchange_trace";
 
 async function getFlightInZone(bottom_left: Location, top_right: Location) : Promise<ForeignFlightData[]> {
     const response = await fetch(
@@ -91,5 +92,49 @@ async function getTrailADSBExchange(id: FlightID) : Promise<Trail[]> {
             }
         }
     );
-    throw new Error("Not implemented");
+    const result: Trace = await response.json();
+    let prev_loc: Location | null = null;
+    let prev_speed: number | null = null;
+    let prev_track: number | null = null;
+    for (const dt of result.trace) {
+        if (dt[1] !== null && dt[2] !== null) {
+            prev_loc = <Location>{lat: dt[1], long: dt[2]};
+            break;
+        }
+    }
+    for (const dt of result.trace) {
+        if (dt[4] !== null) {
+            prev_speed = dt[4];
+            break;
+        }
+    }
+    for (const dt of result.trace) {
+        if (dt[5] !== null) {
+            prev_track = dt[5];
+            break;
+        }
+    }
+    if (prev_loc === null) return [];
+    if (prev_speed === null) return [];
+    if (prev_track === null) return [];
+    let arr: Trail[] = [];
+    for (const dt of result.trace) {
+        if (dt[1] !== null && dt[2] !== null) {
+            prev_loc = <Location>{lat: dt[1], long: dt[2]};
+        }
+        if (dt[4] !== null) prev_speed = dt[4];
+        if (dt[5] !== null) prev_track = dt[5];
+        arr.push(
+            {
+                dt: dt[0],
+                loc: {
+                    loc: <Location>prev_loc,
+                    alt: dt[3] === "ground" ? 0 : dt[3],
+                    speed: prev_speed,
+                    track: prev_track
+                }
+            }
+        );
+    }
+    return arr;
 }
