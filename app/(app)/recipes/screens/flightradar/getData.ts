@@ -7,7 +7,7 @@ async function getFlightInZone(bottom_left: Location, top_right: Location) : Pro
         `https://globe.adsbexchange.com/re-api/?binCraft&zstd&box=${bottom_left.lat},${top_right.lat},${bottom_left.long},${top_right.long}`,
         {
             headers: {
-                "referer": "https://globe.adsbexchange.com/",
+                "Referer": "https://globe.adsbexchange.com/",
                 "User-Agent": "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
             }
         }
