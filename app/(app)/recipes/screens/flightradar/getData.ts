@@ -50,3 +50,16 @@ async function getFr24Hex(id: FlightID) : Promise<FlightID> {
         }
     return {...id, fr24_hex8: entry.id};
 }
+
+async function getTrailADSBExchange(id: FlightID) : Promise<Trail[]> {
+    const response = await fetch(
+        `https://globe.adsbexchange.com/data/traces/${id.hex.substring(4, 6)}/trace_full_${id.hex}.json`,
+        {
+            headers: {
+                "Referer": "https://globe.adsbexchange.com/",
+                "User-Agent": "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+            }
+        }
+    );
+    throw new Error("Not implemented");
+}
