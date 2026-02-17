@@ -9,7 +9,7 @@ export interface FlightStatusData {
         text: "estimated" | "landed" | "scheduled" | string,
         type: "arrival" | string,
         color: "green" | "gray" | "yellow" | string | null, // default: red if null?
-        diverted: null
+        diverted: string | null // Airport code
     },
     eventTime: {
         utc: number | null, // For est arrival
@@ -21,6 +21,7 @@ export interface FlightStatus {
     live: boolean,
     text: "Scheduled" | string,
     icon: "green" | "red" | "yellow" | string | null, // default: red if null? // nvm it can still be yellow when null
+    // diversion show red
     estimated: null,
     ambiguous: boolean,
     generic: FlightStatusData
@@ -47,6 +48,35 @@ export interface Airline {
     short?: string
 }
 
+export interface Country {
+    name: string,
+    code: string,
+    id: number
+}
+
+export interface Timezone {
+    name: string,
+    offset: number,
+    abbr: string,
+    abbrName: string,
+    isDst: boolean
+}
+
+export interface Airport {
+    name: string,
+    code: {
+        iata: string,
+        icao: string
+    },
+    position: {
+        latitude: number,
+        longitude: number,
+        country: Country,
+        region: {city: string},
+        timezone: Timezone
+    }
+}
+
 export interface FR24PlaybackResult {
     result: {
         response: {
@@ -62,7 +92,12 @@ export interface FR24PlaybackResult {
                         availability: {serialNo: boolean, age: boolean}
                     },
                     owner?: Airline,
-                    airline?: Airline
+                    airline?: Airline,
+                    airport: {
+                        origin: Airport,
+                        destination: Airport,
+                        real: Airport | null // diversion
+                    }
                 }
                 aircraftImage: {}
             }
