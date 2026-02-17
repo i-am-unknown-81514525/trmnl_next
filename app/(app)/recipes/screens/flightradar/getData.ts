@@ -1,53 +1,6 @@
-import { createReadStream, createWriteStream } from 'node:fs';
-import { createZstdDecompress } from 'node:zlib';
-import { pipeline } from 'node:stream/promises';
 import { Decompressor } from 'zstd-wasm';
 import {getLive, FR24SearchResult} from './schema_external/fr24search';
-
-export interface Location {
-    lat: number,
-    long: number
-}
-
-export interface FlightID {
-    hex: string,
-    callsign: string,
-    fr24_hex8: string | null;
-}
-
-export interface ForeignFlightData {
-    id: FlightID
-    loc: Location
-}
-
-export interface Trail {
-    loc: Location,
-    speed: number,
-    height: number,
-    track: number
-}
-
-export interface FlightData {
-    id: FlightID
-    current: Trail
-    trail: Trail[]
-}
-
-export interface Airport {
-    code: string,
-    loc: Location
-}
-
-type TrackingKind =
-    | { kind: 'static_location', location: Location }
-    | { kind: 'static_airport', airport: Airport }
-    | { kind: 'flight'; flight: FlightData };
-
-export interface DisplayData {
-    tracking: TrackingKind,
-    center_loc: Location,
-    nearby: ForeignFlightData[]
-}
+import {ForeignFlightData, FlightID, Location, FlightData, DisplayData, Trail, Airport } from "./schema";
 
 async function getFlightInZone(bottom_left: Location, top_right: Location) : Promise<ForeignFlightData[]> {
     const response = await fetch(
