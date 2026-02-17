@@ -80,3 +80,12 @@ async function getFlightInZone(bottom_left: Location, top_right: Location) : Pro
     }
    return arr;
 }
+
+// async function getFr24Hex(id: FlightID) : Promise<FlightID> {
+//     const response = await fetch(`https://www.flightradar24.com/v1/search/web/find?query=${id.callsign}&limit=50`);
+//     if (!response.ok) {
+//         throw new Error(`HTTP error! Status: ${response.status}`);
+//     }
+//     const body = await response.json();
+//
+// }
