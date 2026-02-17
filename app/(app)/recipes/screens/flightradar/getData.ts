@@ -1,6 +1,6 @@
 import { Decompressor } from 'zstd-wasm';
 import {getLive, FR24SearchResult} from './schema_external/fr24search';
-import {ForeignFlightData, FlightID, Location, FlightData, DisplayData, Trail, Airport } from "./schema";
+import {ForeignFlightData, FlightID, Location, Trail} from "./schema";
 
 async function getFlightInZone(bottom_left: Location, top_right: Location) : Promise<ForeignFlightData[]> {
     const response = await fetch(
@@ -19,18 +19,48 @@ async function getFlightInZone(bottom_left: Location, top_right: Location) : Pro
     const decompressor = new Decompressor();
     await decompressor.init();
     const data = decompressor.decompress(body);
-    const total_size = data.length;
-    const entries = (total_size / 112) - 1;
+
+    const view = new DataView(data.buffer, data.byteOffset, data.byteLength);
+    if (data.byteLength < 12) return [];
+    const stride = view.getUint32(8, true);
+    const entries = Math.floor(data.byteLength / stride);
+
     const arr: ForeignFlightData[] = [];
-    for (let i = 1; i <= entries; i++) { // it is start at 1 and end at entries inclusively because the first
-        // one should be discarded, as evidence by the -1 in entries.
-        const base = 112*i;
-        const hex_int = data[base+2] * 65536 + data[base+3] * 256 + data[base+4];
-        const hex = hex_int.toString(16);
-        const long = data[base+8] * (2**24) + data[base+9] * (2**16) + data[base+10] * (2**8) + data[base+11] / 1e6;
-        const lat = data[base+12] * (2**24) + data[base+13] * (2**16) + data[base+14] * (2**8) + data[base+15] / 1e6;
-        const callsign = (new TextDecoder()).decode(data.subarray(base+78, base+78+8)).trim();
-        arr.push({id: {hex, callsign, fr24_hex8: null}, loc: {lat, long}});
+    for (let i = 1; i < entries; i++) {
+        const base = stride * i;
+
+        const validity1 = view.getUint8(base + 73);
+        if (!(validity1 & 64)) continue; // Invalid position
+
+        const hexInt = view.getUint32(base, true);
+        const hex = (hexInt & 0xFFFFFF).toString(16).padStart(6, '0');
+
+        const long = view.getInt32(base + 8, true) / 1e6;
+        const lat = view.getInt32(base + 12, true) / 1e6;
+
+        const callsignBytes = data.subarray(base + 78, base + 86);
+        let end = callsignBytes.indexOf(0);
+        if (end === -1) end = 8;
+        const callsign = new TextDecoder().decode(callsignBytes.subarray(0, end)).trim();
+
+        const alt = (validity1 & 16) ? view.getInt16(base + 20, true) * 25 : null;
+        const speed = (validity1 & 128) ? view.getInt16(base + 34, true) / 10.0 : null;
+
+        const validity2 = view.getUint8(base + 74);
+        const track = (validity2 & 8) ? view.getInt16(base + 40, true) / 90.0 : null;
+
+        arr.push(
+            {id: {hex, callsign, fr24_hex8: null},
+                loc: {
+                    loc: {
+                        lat, long
+                    },
+                    alt: alt,
+                    speed: speed,
+                    track: track
+                }
+            }
+        );
     }
    return arr;
 }

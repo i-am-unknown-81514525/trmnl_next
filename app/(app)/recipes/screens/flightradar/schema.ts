@@ -10,6 +10,13 @@ export interface FlightLocation {
     speed: number
 }
 
+export interface PartialFlightLocation {
+    loc: Location,
+    track: number | null,
+    alt: number | null,
+    speed: number | null
+}
+
 export interface FlightID {
     hex: string,
     callsign: string,
@@ -18,7 +25,7 @@ export interface FlightID {
 
 export interface ForeignFlightData {
     id: FlightID
-    loc: FlightLocation
+    loc: FlightLocation | PartialFlightLocation
 }
 
 export interface Trail {
