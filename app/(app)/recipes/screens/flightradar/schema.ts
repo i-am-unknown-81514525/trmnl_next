@@ -15,6 +15,7 @@ export interface ForeignFlightData {
 }
 
 export interface Trail {
+    dt: number,
     loc: Location,
     speed: number,
     height: number,
@@ -23,8 +24,7 @@ export interface Trail {
 
 export interface FlightData {
     id: FlightID
-    current: Trail
-    trail: Trail[]
+    trails: Trail[]
 }
 
 export interface Airport {
