@@ -46,8 +46,13 @@ export interface FR24OperatorDetail {
     logo: string
 }
 
-export interface FR24SearchResult {
-    result: FR24SearchEntry
+export interface FR24ResultStats {
+    all: number,
+    airport: number,
+    operator: number,
+    live: number,
+    schedule: number,
+    aircraft: number
 }
 
 export interface FR24SearchEntry {
@@ -58,3 +63,10 @@ export interface FR24SearchEntry {
     match: MatchType,
     name: string
 }
+
+export interface FR24SearchResult {
+    result: FR24SearchEntry,
+    info: {grpcEnabled: true},
+    stats: {total: FR24ResultStats, count: FR24ResultStats}
+}
+
