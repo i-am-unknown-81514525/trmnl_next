@@ -154,10 +154,20 @@ async function getTrailFR24(id: FlightID) : Promise<Trail[]> {
     if (data.result.response.data.flight.track === undefined) {
         return [];
     }
-    throw new Error("Not implemented");
-    // return data.result.response.data.flight.track.map(
-    //     track=> {
-    //         return {}
-    //     }
-    // );
+    return data.result.response.data.flight.track.map(
+        track=> {
+            return {
+                timestamp: track.timestamp,
+                loc: {
+                    loc: {
+                        lat: track.latitude,
+                        long: track.latitude
+                    },
+                    alt: track.altitude.feet,
+                    speed: track.speed.kts,
+                    track: track.heading
+                }
+            }
+        }
+    );
 }
