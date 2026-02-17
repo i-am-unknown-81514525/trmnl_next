@@ -1,7 +1,6 @@
-type ResultType = "operator" | "live" | "airport" | "schedule" | "aircraft"
-type MatchType = "begins" | "contains" | "icao"
-
-
+type ResultType = "operator" | "live" | "airport" | "schedule" | "aircraft";
+type MatchType = "begins" | "contains" | "icao";
+type AllDetailType = FR24AirportDetail | FR24LiveDetail | FR24OperatorDetail | FR24ScheduleDetail | FR24AircraftDetail;
 
 
 export interface FR24AirportDetail {
@@ -52,5 +51,10 @@ export interface FR24SearchResult {
 }
 
 export interface FR24SearchEntry {
-
+    id: string,
+    label: string,
+    detail: AllDetailType,
+    type: ResultType,
+    match: MatchType,
+    name: string
 }
