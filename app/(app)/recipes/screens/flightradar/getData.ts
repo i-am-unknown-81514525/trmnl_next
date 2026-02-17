@@ -115,6 +115,13 @@ async function getTrailADSBExchange(id: FlightID) : Promise<Trail[]> {
             break;
         }
     }
+    const max_timedelta = result.trace.map(
+        x=>x[0]
+    ).reduce(
+        (prev, current) =>
+            (prev > current) ? prev : current, 0
+    );
+    const base_time = result.timestamp - max_timedelta;
     if (prev_loc === null) return [];
     if (prev_speed === null) return [];
     if (prev_track === null) return [];
@@ -127,7 +134,7 @@ async function getTrailADSBExchange(id: FlightID) : Promise<Trail[]> {
         if (dt[5] !== null) prev_track = dt[5];
         arr.push(
             {
-                dt: dt[0],
+                timestamp: dt[0] + base_time,
                 loc: {
                     loc: <Location>prev_loc,
                     alt: dt[3] === "ground" ? 0 : dt[3],

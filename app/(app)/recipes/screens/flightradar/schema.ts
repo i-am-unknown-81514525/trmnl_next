@@ -29,7 +29,7 @@ export interface ForeignFlightData {
 }
 
 export interface Trail {
-    dt: number,
+    timestamp: number,
     loc: FlightLocation
 }
 
