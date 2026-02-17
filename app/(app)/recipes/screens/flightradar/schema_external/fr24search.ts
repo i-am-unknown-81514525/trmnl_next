@@ -2,9 +2,7 @@ type ResultType = "operator" | "live" | "airport" | "schedule" | "aircraft"
 type MatchType = "begins" | "contains" | "icao"
 
 
-export interface FR24SearchResult {
-    result: FR24SearchEntry
-}
+
 
 export interface FR24AirportDetail {
     lat: number,
@@ -26,6 +24,31 @@ export interface FR24ScheduleDetail {
     flight: string,
     operator: string,
     operator_id: number
+}
+
+export interface FR24LiveDetail {
+    lat: number,
+    long: number,
+    schd_from: string,
+    schd_to: string,
+    ac_type: string,
+    route: string, // display only
+    logo: string,
+    reg: string,
+    callsign: string,
+    flight: string,
+    operator: string,
+    operator_id: number
+}
+
+export interface FR24OperatorDetail {
+    operator_id: number,
+    iata: string,
+    logo: string
+}
+
+export interface FR24SearchResult {
+    result: FR24SearchEntry
 }
 
 export interface FR24SearchEntry {
