@@ -12,7 +12,7 @@ export interface FlightStatusData {
         diverted: string | null // Airport code
     },
     eventTime: {
-        utc: number | null, // For est arrival
+        utc: number | null, // For est arrival, null on divert
         local: number | null
     }
 }
@@ -77,6 +77,40 @@ export interface Airport {
     }
 }
 
+export interface MedianTimeData { // wtf is this
+    time: number | null,
+    delay: number | null,
+    timestamp: number | null
+}
+
+export interface HeightData {
+    feet: number,
+    meters: number
+}
+
+export interface SpeedData {
+    kmh: number,
+    kts: number,
+    mph: number
+}
+
+export interface VSpeedData {
+    fpm: number,
+    ms: number
+}
+
+export interface TrackEntry {
+    timestamp: number,
+    latitude: number,
+    longitude: number,
+    altitude: HeightData,
+    speed: SpeedData,
+    verticalSpeed: VSpeedData,
+    heading: number,
+    squawk: string,
+    ems: null | any
+}
+
 export interface FR24PlaybackResult {
     result: {
         response: {
@@ -91,13 +125,15 @@ export interface FR24PlaybackResult {
                         identification: AirCraftIdentification,
                         availability: {serialNo: boolean, age: boolean}
                     },
-                    owner?: Airline,
-                    airline?: Airline,
-                    airport: {
+                    owner?: Airline | null,
+                    airline?: Airline | null,
+                    airport?: {
                         origin: Airport,
                         destination: Airport,
                         real: Airport | null // diversion
-                    }
+                    },
+                    median?: MedianTimeData,
+                    track?: TrackEntry[]
                 }
                 aircraftImage: {}
             }
