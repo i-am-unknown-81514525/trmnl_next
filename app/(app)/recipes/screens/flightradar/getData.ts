@@ -2,6 +2,7 @@ import { createReadStream, createWriteStream } from 'node:fs';
 import { createZstdDecompress } from 'node:zlib';
 import { pipeline } from 'node:stream/promises';
 import { Decompressor } from 'zstd-wasm';
+import {getLive, FR24SearchResult} from './schema_external/fr24search';
 
 export interface Location {
     lat: number,
@@ -81,11 +82,18 @@ async function getFlightInZone(bottom_left: Location, top_right: Location) : Pro
    return arr;
 }
 
-// async function getFr24Hex(id: FlightID) : Promise<FlightID> {
-//     const response = await fetch(`https://www.flightradar24.com/v1/search/web/find?query=${id.callsign}&limit=50`);
-//     if (!response.ok) {
-//         throw new Error(`HTTP error! Status: ${response.status}`);
-//     }
-//     const body = await response.json();
-//
-// }
+async function getFr24Hex(id: FlightID) : Promise<FlightID> {
+    const response = await fetch(`https://www.flightradar24.com/v1/search/web/find?query=${id.callsign}&limit=50`);
+    if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+    if (id.fr24_hex8) {
+        return id;
+    }
+    const result: FR24SearchResult = await response.json();
+    const entry = getLive(id.callsign, result);
+    if (entry === null) {
+        return id;
+        }
+    return {...id, fr24_hex8: entry.id};
+}
