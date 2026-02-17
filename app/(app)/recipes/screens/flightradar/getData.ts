@@ -2,6 +2,7 @@ import { Decompressor } from 'zstd-wasm';
 import {getLive, FR24SearchResult} from './schema_external/fr24search';
 import {ForeignFlightData, FlightID, Location, Trail} from "./schema";
 import {Trace} from "./schema_external/adsbexchange_trace";
+import {FR24PlaybackResult} from "./schema_external/fr24_flightplayback";
 
 async function getFlightInZone(bottom_left: Location, top_right: Location) : Promise<ForeignFlightData[]> {
     const response = await fetch(
@@ -142,5 +143,14 @@ async function getTrailADSBExchange(id: FlightID) : Promise<Trail[]> {
 async function getTrailFR24(id: FlightID) : Promise<Trail[]> {
     id = await getFr24Hex(id);
     const response = await fetch(`https://api.flightradar24.com/common/v1/flight-playback.json?flightId=${id.fr24_hex8}&timestamp=0`);
+    const data: FR24PlaybackResult = await response.json();
+    if (data.result.response.data.flight.track === undefined) {
+        return [];
+    }
     throw new Error("Not implemented");
+    // return data.result.response.data.flight.track.map(
+    //     track=> {
+    //         return {}
+    //     }
+    // );
 }
