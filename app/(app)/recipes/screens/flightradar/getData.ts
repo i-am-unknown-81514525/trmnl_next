@@ -1,6 +1,6 @@
 import { Decompressor } from 'zstd-wasm';
-import {getLive, FR24SearchResult} from './schema_external/fr24search';
-import {ForeignFlightData, FlightID, Location, Trail} from "./schema";
+import {getLive, FR24SearchResult, getAirport} from './schema_external/fr24search';
+import {ForeignFlightData, FlightID, Location, Trail, Airport} from "./schema";
 import {Trace} from "./schema_external/adsbexchange_trace";
 import {FR24PlaybackResult} from "./schema_external/fr24_flightplayback";
 
@@ -79,7 +79,7 @@ async function getFr24Hex(id: FlightID) : Promise<FlightID> {
     const entry = getLive(id.callsign, result);
     if (entry === null) {
         return id;
-        }
+    }
     return {...id, fr24_hex8: entry.id};
 }
 
@@ -170,4 +170,20 @@ async function getTrailFR24(id: FlightID) : Promise<Trail[]> {
             }
         }
     );
+}
+
+async function getFr24AirportLocation(iata_code: string) : Promise<Airport | null> {
+    const response = await fetch(`https://www.flightradar24.com/v1/search/web/find?query=${iata_code}&limit=50`);
+    if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+    const result: FR24SearchResult = await response.json();
+    const entry = getAirport(iata_code, result);
+    if (entry === null) {
+        return null;
+    }
+    return {
+        code: entry.id,
+        loc: {lat: entry.detail.lat, long: entry.detail.long},
+    }
 }
