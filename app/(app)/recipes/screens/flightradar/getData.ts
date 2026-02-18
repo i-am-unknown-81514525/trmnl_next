@@ -11,7 +11,8 @@ async function getFlightInZone(bottom_left: Location, top_right: Location) : Pro
             headers: {
                 "Referer": "https://globe.adsbexchange.com/",
                 "User-Agent": "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
-            }
+            },
+            cache: 'no-store'
         }
     )
     if (!response.ok) {
@@ -68,7 +69,7 @@ async function getFlightInZone(bottom_left: Location, top_right: Location) : Pro
 }
 
 async function getFr24Hex(id: FlightID) : Promise<FlightID> {
-    const response = await fetch(`https://www.flightradar24.com/v1/search/web/find?query=${id.callsign}&limit=50`);
+    const response = await fetch(`https://www.flightradar24.com/v1/search/web/find?query=${id.callsign}&limit=50`, { next: { revalidate: 3600 } });
     if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
     }
@@ -90,7 +91,8 @@ async function getTrailADSBExchange(id: FlightID) : Promise<Trail[]> {
             headers: {
                 "Referer": "https://globe.adsbexchange.com/",
                 "User-Agent": "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
-            }
+            },
+            cache: 'no-store'
         }
     );
     const result: Trace = await response.json();
@@ -171,13 +173,13 @@ function retrieveTrailFR24(data: FR24PlaybackResult) : Trail[] {
 
 async function getTrailFR24(id: FlightID) : Promise<Trail[]> {
     id = await getFr24Hex(id);
-    const response = await fetch(`https://api.flightradar24.com/common/v1/flight-playback.json?flightId=${id.fr24_hex8}&timestamp=0`);
+    const response = await fetch(`https://api.flightradar24.com/common/v1/flight-playback.json?flightId=${id.fr24_hex8}&timestamp=0`, { cache: 'no-store' });
     const data: FR24PlaybackResult = await response.json();
     return retrieveTrailFR24(data);
 }
 
 async function getFr24AirportLocation(iata_code: string) : Promise<Airport | null> {
-    const response = await fetch(`https://www.flightradar24.com/v1/search/web/find?query=${iata_code}&limit=50`);
+    const response = await fetch(`https://www.flightradar24.com/v1/search/web/find?query=${iata_code}&limit=50`, { next: { revalidate: 86400 } });
     if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
     }
