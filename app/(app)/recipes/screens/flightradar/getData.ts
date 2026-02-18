@@ -184,6 +184,7 @@ async function getFr24AirportLocation(iata_code: string) : Promise<Airport | nul
     }
     return {
         code: entry.id,
+        name: entry.label,
         loc: {lat: entry.detail.lat, long: entry.detail.long},
     }
 }

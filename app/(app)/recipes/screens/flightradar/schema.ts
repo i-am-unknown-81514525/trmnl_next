@@ -40,6 +40,7 @@ export interface FlightData {
 
 export interface Airport {
     code: string,
+    name: string,
     loc: Location
 }
 
