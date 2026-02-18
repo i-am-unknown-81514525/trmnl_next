@@ -1,3 +1,5 @@
+import {FullTimeData} from "@/app/(app)/recipes/screens/flightradar/schema_external/fr24_flight_list";
+
 export interface Location {
     lat: number,
     long: number
@@ -33,7 +35,7 @@ export interface Trail {
     loc: FlightLocation
 }
 
-enum DepartureKind {
+export enum DepartureKind {
     Scheduled = 0,
     Departed = 1,
     Diverted = 2,
@@ -44,9 +46,7 @@ export interface FlightMetadata {
     src: Airport | null,
     dest: Airport | null,
     real: Airport | null,
-    scheduled_departure: number | null,
-    actual_departure: number | null,
-    arrival_est: number | null,
+    time_data: FullTimeData | null,
     status: DepartureKind | null,
 }
 

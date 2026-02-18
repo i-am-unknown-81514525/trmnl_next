@@ -6,7 +6,7 @@ export interface FlightIdentification {
 
 export interface FlightStatusData {
     status: {
-        text: "estimated" | "landed" | "scheduled" | string,
+        text: "estimated" | "landed" | "scheduled" | "diverted" | string,
         type: "arrival" | string,
         color: "green" | "gray" | "yellow" | string | null, // default: red if null?
         diverted: string | null // Airport code

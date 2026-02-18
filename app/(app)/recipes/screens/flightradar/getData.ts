@@ -1,8 +1,9 @@
-import { Decompressor } from 'zstd-wasm';
-import {getLive, FR24SearchResult, getAirport} from './schema_external/fr24search';
-import {ForeignFlightData, FlightID, Location, Trail, Airport, FlightData, FlightMetadata} from "./schema";
+import {Decompressor} from 'zstd-wasm';
+import {FR24SearchResult, getAirport, getLive} from './schema_external/fr24search';
+import {Airport, FlightData, FlightID, FlightMetadata, ForeignFlightData, Location, Trail, DepartureKind} from "./schema";
 import {Trace} from "./schema_external/adsbexchange_trace";
 import {FR24PlaybackResult} from "./schema_external/fr24_flightplayback";
+import {FullTimeData} from "./schema_external/fr24_flight_list";
 
 async function getFlightInZone(bottom_left: Location, top_right: Location) : Promise<ForeignFlightData[]> {
     const response = await fetch(
@@ -195,9 +196,30 @@ async function getFr24AirportLocation(iata_code: string) : Promise<Airport | nul
     }
 }
 
+async function getEstFR24(id: FlightID) : Promise<FullTimeData | null> {
+    const response = await fetch(`https://api.flightradar24.com/common/v1/flight/list.json?query=${id.callsign}&fetchBy=reg&filterBy=historic&limit=5&page=1&timestamp=0`, { cache: 'no-store' });
+    if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+    return (await response.json())?.result?.response?.data?.[0]?.time ?? null;
+}
+
+function departureKindMapping(str: "estimated" | "landed" | "scheduled" | "diverted" | string) : DepartureKind {
+    const mapping: Record<string, DepartureKind> = {
+        "estimated": DepartureKind.Departed,
+        "landed": DepartureKind.Arrived,
+        "scheduled": DepartureKind.Scheduled,
+        "diverted": DepartureKind.Diverted
+    }
+    return mapping[str] ?? DepartureKind.Departed;
+}
+
 async function getFlightData(id: FlightID) : Promise<FlightData | null> {
     id = await getFr24Hex(id);
     const response = await fetch(`https://api.flightradar24.com/common/v1/flight-playback.json?flightId=${id.fr24_hex8}&timestamp=0`, { cache: 'no-store' });
+    if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+    }
     const data: FR24PlaybackResult = await response.json();
     const trails = extractTrailFR24(data) || await getTrailADSBExchange(id);
     if (trails.length === 0) {
@@ -207,14 +229,13 @@ async function getFlightData(id: FlightID) : Promise<FlightData | null> {
     let metadata: FlightMetadata | null = null;
     const airport_data = data.result.response.data.flight.airport;
     if (airport_data !== undefined) {
+        const time_data = await getEstFR24(id);
         metadata = {
             src: await getFr24AirportLocation(airport_data.origin.code.iata),
             dest: await getFr24AirportLocation(airport_data.destination.code.iata),
             real: airport_data.real ? await getFr24AirportLocation(airport_data.real.code.iata) : null,
-            scheduled_departure: null,
-            actual_departure: null,
-            arrival_est: null,
-            status: null
+            time_data: time_data,
+            status: departureKindMapping(data.result.response.data.flight.status?.generic.status.text ?? "estimated")
         }
     }
     return {
