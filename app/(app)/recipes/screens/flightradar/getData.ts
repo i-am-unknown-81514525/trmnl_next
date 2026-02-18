@@ -1,6 +1,6 @@
 import { Decompressor } from 'zstd-wasm';
 import {getLive, FR24SearchResult, getAirport} from './schema_external/fr24search';
-import {ForeignFlightData, FlightID, Location, Trail, Airport} from "./schema";
+import {ForeignFlightData, FlightID, Location, Trail, Airport, FlightData} from "./schema";
 import {Trace} from "./schema_external/adsbexchange_trace";
 import {FR24PlaybackResult} from "./schema_external/fr24_flightplayback";
 
@@ -147,10 +147,7 @@ async function getTrailADSBExchange(id: FlightID) : Promise<Trail[]> {
     return arr;
 }
 
-async function getTrailFR24(id: FlightID) : Promise<Trail[]> {
-    id = await getFr24Hex(id);
-    const response = await fetch(`https://api.flightradar24.com/common/v1/flight-playback.json?flightId=${id.fr24_hex8}&timestamp=0`);
-    const data: FR24PlaybackResult = await response.json();
+function retrieveTrailFR24(data: FR24PlaybackResult) : Trail[] {
     if (data.result.response.data.flight.track === undefined) {
         return [];
     }
@@ -172,6 +169,13 @@ async function getTrailFR24(id: FlightID) : Promise<Trail[]> {
     );
 }
 
+async function getTrailFR24(id: FlightID) : Promise<Trail[]> {
+    id = await getFr24Hex(id);
+    const response = await fetch(`https://api.flightradar24.com/common/v1/flight-playback.json?flightId=${id.fr24_hex8}&timestamp=0`);
+    const data: FR24PlaybackResult = await response.json();
+    return retrieveTrailFR24(data);
+}
+
 async function getFr24AirportLocation(iata_code: string) : Promise<Airport | null> {
     const response = await fetch(`https://www.flightradar24.com/v1/search/web/find?query=${iata_code}&limit=50`);
     if (!response.ok) {
@@ -188,3 +192,10 @@ async function getFr24AirportLocation(iata_code: string) : Promise<Airport | nul
         loc: {lat: entry.detail.lat, long: entry.detail.long},
     }
 }
+//
+// async function getFlightData(id: FlightID) : Promise<FlightData> {
+//     id = await getFr24Hex(id);
+//     const response = await fetch(`https://api.flightradar24.com/common/v1/flight-playback.json?flightId=${id.fr24_hex8}&timestamp=0`);
+//     const data: FR24PlaybackResult = await response.json();
+//     throw new Error("Not implemented");
+// }
