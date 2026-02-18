@@ -44,6 +44,8 @@ export interface FlightMetadata {
     src: Airport | null,
     dest: Airport | null,
     real: Airport | null,
+    scheduled_departure: number | null,
+    actual_departure: number | null,
     arrival_est: number | null,
     status: DepartureKind | null,
 }
