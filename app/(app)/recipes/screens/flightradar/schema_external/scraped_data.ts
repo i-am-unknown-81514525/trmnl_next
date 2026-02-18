@@ -10,11 +10,11 @@ export interface Runway {
     le_ident: string | null;
     le_lat: number;
     le_long: number;
-    le_heading_degT: number;
+    le_heading_degT: number | null;
     he_ident: string | null;
     he_lat: number;
     he_long: number;
-    he_heading_degT: number;
+    he_heading_degT: number | null;
 }
 
 export interface Navaid {

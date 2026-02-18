@@ -10,8 +10,8 @@ function toNum(v: string | undefined) : number | null {
 }
 
 function toBool(v: string | undefined) : boolean {
-    if (v === undefined || v === null || v === '') return false;
-    return v.toLowerCase() in ['1', 'true'];
+    if (!v) return false;
+    return ['1', 'true'].includes(v.toLowerCase());
 }
 
 let loaded: boolean = false;
@@ -54,7 +54,7 @@ export function loadAllSync() : void {
     if (airports.length > 0) {
         airports_idx = new Flatbush(airports.length);
         for (const airport of airports) {
-            airports_idx.add(airport.lon - DRAW_PADDING, airport.lat - DRAW_PADDING, airport.lat + DRAW_PADDING, airport.lon + DRAW_PADDING);
+            airports_idx.add(airport.lon - DRAW_PADDING, airport.lat - DRAW_PADDING, airport.lon + DRAW_PADDING, airport.lat + DRAW_PADDING);
         }
         airports_idx.finish();
     }
@@ -74,9 +74,7 @@ export function loadAllSync() : void {
         const he_long = toNum(runway_row.he_longitude_deg);
         if (he_long === null) continue;
         const le_heading_degT = toNum(runway_row.le_heading_degT);
-        if (le_heading_degT === null) continue;
         const he_heading_degT = toNum(runway_row.he_heading_degT);
-        if (he_heading_degT === null) continue;
 
         const rec: Runway = {
             id: String(runway_row.id),
@@ -124,7 +122,7 @@ export function loadAllSync() : void {
         if (lon === null) {
             continue;
         }
-        const name = navaid_row.name;
+        const name = (navaid_row.name || '').trim();
         if (name === null) {
             continue
         }
@@ -141,8 +139,28 @@ export function loadAllSync() : void {
     if (navaids.length > 0) {
         navaids_idx = new Flatbush(navaids.length);
         for (const navaid of navaids) {
-            navaids_idx.add(navaid.lon - DRAW_PADDING, navaid.lat - DRAW_PADDING, navaid.lat + DRAW_PADDING, navaid.lon + DRAW_PADDING);
+            navaids_idx.add(navaid.lon - DRAW_PADDING, navaid.lat - DRAW_PADDING, navaid.lon + DRAW_PADDING, navaid.lat + DRAW_PADDING);
         }
         navaids_idx.finish();
     }
+    loaded = true;
+}
+
+export function findRunwaysInBox(minLat:number, minLon:number, maxLat:number, maxLon:number): Runway[] {
+    if (!loaded) loadAllSync();
+    if (!runways_idx) return [];
+    const ids = runways_idx.search(minLon, minLat, maxLon, maxLat);
+    return ids.map(i => runways[i]);
+}
+export function findNavaidsInBox(minLat:number, minLon:number, maxLat:number, maxLon:number): Navaid[] {
+    if (!loaded) loadAllSync();
+    if (!navaids_idx) return [];
+    const ids = navaids_idx.search(minLon, minLat, maxLon, maxLat);
+    return ids.map(i => navaids[i]);
+}
+export function findAirportInBox(minLat:number, minLon:number, maxLat:number, maxLon:number): AirportExtended[] {
+    if (!loaded) loadAllSync();
+    if (!airports_idx) return [];
+    const ids = airports_idx.search(minLon, minLat, maxLon, maxLat);
+    return ids.map(i => airports[i]);
 }
