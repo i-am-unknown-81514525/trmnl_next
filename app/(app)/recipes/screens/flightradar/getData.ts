@@ -1,11 +1,26 @@
 import {Decompressor} from 'zstd-wasm';
 import {FR24SearchResult, getAirport, getLive} from './schema_external/fr24search';
-import {Airport, FlightData, FlightID, FlightMetadata, ForeignFlightData, Location, Trail, DepartureKind} from "./schema";
+import {
+    Airport,
+    FlightData,
+    FlightID,
+    FlightMetadata,
+    ForeignFlightData,
+    Location,
+    Trail,
+    DepartureKind,
+    BoundingBox, EnvironmentOverlays
+} from "./schema";
 import {Trace} from "./schema_external/adsbexchange_trace";
 import {FR24PlaybackResult} from "./schema_external/fr24_flightplayback";
 import {FullTimeData} from "./schema_external/fr24_flight_list";
+import {loadAllSync, findAirportInBox, findNavaidsInBox, findRunwaysInBox} from "./csv_handler";
 
-async function getFlightInZone(bottom_left: Location, top_right: Location) : Promise<ForeignFlightData[]> {
+loadAllSync();
+
+async function getFlightInZone(bound: BoundingBox) : Promise<ForeignFlightData[]> {
+    const bottom_left: Location = bound.min;
+    const top_right: Location = bound.max;
     const response = await fetch(
         `https://globe.adsbexchange.com/re-api/?binCraft&zstd&box=${bottom_left.lat},${top_right.lat},${bottom_left.long},${top_right.long}`,
         {
@@ -67,6 +82,15 @@ async function getFlightInZone(bottom_left: Location, top_right: Location) : Pro
         );
     }
    return arr;
+}
+
+export function getOverlayInZone(bound: BoundingBox) : EnvironmentOverlays {
+    const bottom_left: Location = bound.min;
+    const top_right: Location = bound.max;
+    const runways = findRunwaysInBox(bottom_left.lat, bottom_left.long, top_right.lat, top_right.long);
+    const navaids = findNavaidsInBox(bottom_left.lat, bottom_left.long, top_right.lat, top_right.long);
+    const airports = findAirportInBox(bottom_left.lat, bottom_left.long, top_right.lat, top_right.long);
+    return {runways, navaids, airports};
 }
 
 async function getFr24Hex(id: FlightID) : Promise<FlightID> {
