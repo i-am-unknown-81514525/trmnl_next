@@ -123,7 +123,7 @@ export function loadAllSync() : void {
             continue;
         }
         const name = (navaid_row.name || '').trim();
-        if (name === null) {
+        if (!name) {
             continue
         }
         const rec: Navaid = {
