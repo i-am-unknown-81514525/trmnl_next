@@ -46,6 +46,7 @@
 		"cmdk": "1.1.1",
 		"csv-parse": "^6.1.0",
 		"d3": "^7.9.0",
+		"d3-geo": "^3.1.1",
 		"flatbush": "^4.5.0",
 		"geolib": "^3.3.4",
 		"jimp": "^1.6.0",
@@ -63,6 +64,8 @@
 		"sonner": "^2.0.7",
 		"tailwind-merge": "^3.4.0",
 		"tailwindcss-animate": "^1.0.7",
+		"topojson-client": "^3.1.0",
+		"world-atlas": "^2.0.2",
 		"zod": "^4.3.6",
 		"zstd-wasm": "^0.0.9",
 		"zustand": "^5.0.10"
