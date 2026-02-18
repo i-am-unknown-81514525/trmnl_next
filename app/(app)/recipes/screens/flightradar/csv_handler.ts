@@ -111,4 +111,38 @@ export function loadAllSync() : void {
         }
         runways_idx.finish();
     }
+    // navaids.csv
+    const navaid_raw = fs.readFileSync("data/navaids.csv", "utf8");
+    const navaid_rows: Record<string, string>[] = parse(navaid_raw, {columns: true, skip_empty_lines: true, trim: true});
+    for (const navaid_row of navaid_rows) {
+        const ident = (navaid_row.ident || '').trim().toUpperCase();
+        const lat = toNum(navaid_row.latitude_deg);
+        if (lat === null) {
+            continue;
+        }
+        const lon = toNum(navaid_row.longitude_deg);
+        if (lon === null) {
+            continue;
+        }
+        const name = navaid_row.name;
+        if (name === null) {
+            continue
+        }
+        const rec: Navaid = {
+            id: navaid_row.id,
+            ident,
+            name,
+            lat,
+            lon,
+            type: navaid_row.type
+        }
+        navaids.push(rec);
+    }
+    if (navaids.length > 0) {
+        navaids_idx = new Flatbush(navaids.length);
+        for (const navaid of navaids) {
+            navaids_idx.add(navaid.lon - DRAW_PADDING, navaid.lat - DRAW_PADDING, navaid.lat + DRAW_PADDING, navaid.lon + DRAW_PADDING);
+        }
+        navaids_idx.finish();
+    }
 }
