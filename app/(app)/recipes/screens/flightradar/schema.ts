@@ -40,14 +40,18 @@ enum DepartureKind {
     Arrived = 3
 }
 
+export interface FlightMetadata {
+    src: Airport | null,
+    dest: Airport | null,
+    real: Airport | null,
+    arrival_est: number | null,
+    status: DepartureKind | null,
+}
+
 export interface FlightData {
     id: FlightID
     trails: Trail[]
-    src: Airport,
-    dest: Airport
-    real: Airport | null,
-    arrival_est: Airport | null,
-    status: DepartureKind,
+    metadata: FlightMetadata | null
     curr: Trail
 }
 
