@@ -1,5 +1,5 @@
 type ResultType = "operator" | "live" | "airport" | "schedule" | "aircraft";
-type MatchType = "begins" | "contains" | "icao";
+type MatchType = "begins" | "contains" | "icao" | "iata";
 type AllDetailType = FR24AirportDetail | FR24LiveDetail | FR24OperatorDetail | FR24ScheduleDetail | FR24AircraftDetail;
 
 
@@ -61,7 +61,6 @@ export interface FR24SearchEntry {
     detail: AllDetailType,
     type: ResultType,
     match: MatchType,
-    name: string
 }
 
 export interface FR24SearchResult {
@@ -70,7 +69,7 @@ export interface FR24SearchResult {
     stats: {total: FR24ResultStats, count: FR24ResultStats}
 }
 
-export function getLive(callsign: string, result: FR24SearchResult) : {id: string, label: string, detail: FR24LiveDetail, type: ResultType, match: MatchType, name: string} | null {
+export function getLive(callsign: string, result: FR24SearchResult) : {id: string, label: string, detail: FR24LiveDetail, type: ResultType, match: MatchType} | null {
     for (let i = 0; i < result.result.length; i++) {
         const entry: FR24SearchEntry = result.result[i];
         if (entry.type !== "live") {
@@ -78,7 +77,21 @@ export function getLive(callsign: string, result: FR24SearchResult) : {id: strin
         }
         const detail: FR24LiveDetail = <FR24LiveDetail>entry.detail;
         if (detail.callsign === callsign) {
-            return {id: entry.id, label: entry.label, detail: detail, type: entry.type, match: entry.match, name: entry.name};
+            return {id: entry.id, label: entry.label, detail: detail, type: entry.type, match: entry.match};
+        }
+    }
+    return null;
+}
+
+export function getAirport(code: string, result: FR24SearchResult) : {id: string, label: string, detail: FR24AirportDetail, type: ResultType, match: MatchType} | null {
+    for (let i = 0; i < result.result.length; i++) {
+        const entry: FR24SearchEntry = result.result[i];
+        if (entry.type !== "airport") {
+            continue;
+        }
+        const detail: FR24AirportDetail = <FR24AirportDetail>entry.detail;
+        if (entry.match === "iata" && entry.id === code) {
+            return {id: entry.id, label: entry.label, detail: detail, type: entry.type, match: entry.match};
         }
     }
     return null;
