@@ -33,9 +33,22 @@ export interface Trail {
     loc: FlightLocation
 }
 
+enum DepartureKind {
+    Scheduled = 0,
+    Departed = 1,
+    Diverted = 2,
+    Arrived = 3
+}
+
 export interface FlightData {
     id: FlightID
     trails: Trail[]
+    src: Airport,
+    dest: Airport
+    real: Airport | null,
+    arrival_est: Airport | null,
+    status: DepartureKind,
+    curr: Trail
 }
 
 export interface Airport {
@@ -49,8 +62,19 @@ type TrackingKind =
     | { kind: 'static_airport', airport: Airport }
     | { kind: 'flight'; flight: FlightData };
 
+export interface ForeignFlightDataDisplayParameter {
+    display_icon: boolean,
+    display_label: boolean,
+    require_zoom: number // zoom level must be >= require_zoom to display
+}
+
+export interface ForeignFlightDataDisplay {
+    flight: ForeignFlightData,
+    parameter: ForeignFlightDataDisplayParameter
+}
+
 export interface DisplayData {
     tracking: TrackingKind,
     center_loc: Location,
-    nearby: ForeignFlightData[]
+    nearby: ForeignFlightDataDisplay[]
 }
