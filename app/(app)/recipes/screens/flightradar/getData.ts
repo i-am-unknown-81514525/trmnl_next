@@ -161,7 +161,7 @@ function extractTrailFR24(data: FR24PlaybackResult) : Trail[] {
                 loc: {
                     loc: {
                         lat: track.latitude,
-                        long: track.latitude
+                        long: track.longitude
                     },
                     alt: track.altitude.feet,
                     speed: track.speed.kts,
