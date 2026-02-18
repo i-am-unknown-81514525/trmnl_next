@@ -223,5 +223,4 @@ async function getFlightData(id: FlightID) : Promise<FlightData | null> {
         curr: curr,
         metadata: metadata
     }
-    throw new Error("Not implemented");
 }
