@@ -1,5 +1,6 @@
-import type {FullTimeData} from "@/app/(app)/recipes/screens/flightradar/schema_external/fr24_flight_list";
+import type {FullTimeData} from "./schema_external/fr24_flight_list";
 import type {Navaid, Runway, AirportExtended} from "./schema_external/scraped_data";
+import type {TopoOrGeo} from "./map";
 
 export interface Location {
     lat: number,
@@ -95,5 +96,9 @@ export interface DisplayData {
     tracking: TrackingKind,
     center_loc: Location,
     nearby: ForeignFlightDataDisplay[]
-    overlays: EnvironmentOverlays
+    overlays: EnvironmentOverlays,
+    bound: BoundingBox,
+    visual_bearing: number,
+    forward_ratio: number,
+    land_geo: TopoOrGeo
 }
