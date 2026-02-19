@@ -57,11 +57,12 @@ export default async function FlightRadar(
 		// normalize avgLon into [-180,180)
 		const refLon = ((((avgLon + 180) % 360) + 360) % 360) - 180;
 		const buf = await renderFrameForFlight(data.land_geo as any, flightLoc, {
-			width: 500,
+			width: 300,
 			height: 300,
 			// pass the precomputed bounding box from getData so zoom is respected
 			boundingBox: data.bound,
 			refLon,
+			zoom: data.zoom,
 		});
 		mapImg = `data:image/png;base64,${buf.toString("base64")}`;
 	} catch (e) {
@@ -190,7 +191,7 @@ export default async function FlightRadar(
 						{/* Left column */}
 						<div
 							style={{
-								width: 500,
+								width: 300,
 								display: "flex",
 								flexDirection: "column",
 								gap: 8,
@@ -198,7 +199,7 @@ export default async function FlightRadar(
 						>
 							<div
 								style={{
-									width: 500,
+									width: 300,
 									height: 300,
 									display: "flex",
 									alignItems: "center",
@@ -215,7 +216,7 @@ export default async function FlightRadar(
 										<img
 											src={mapImg}
 											alt="map"
-											width={500}
+											width={300}
 											height={300}
 											style={{
 												width: "100%",

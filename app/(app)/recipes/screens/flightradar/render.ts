@@ -89,6 +89,7 @@ export async function renderFrameForFlight(
 		boundingBox?: BoundingBox;
 		// optional reference longitude to unwrap geometries
 		refLon?: number;
+		zoom?: number;
 	},
 ) {
 	const DPR = opts.dpr ?? 1;
@@ -125,6 +126,8 @@ export async function renderFrameForFlight(
 	// If caller provided an explicit bounding box (e.g. static airport + zoom), use it.
 	let boxes;
 	let refLon: number;
+	// optional zoom passed by caller to control overlay filtering
+	const zoom = opts.zoom as number | undefined;
 	if (opts.boundingBox) {
 		boxes = { unified: opts.boundingBox, split: [opts.boundingBox] } as any;
 		refLon = opts.refLon ?? opts.boundingBox.min.long;
@@ -196,6 +199,24 @@ export async function renderFrameForFlight(
 			(r: any) => String(r.id),
 		);
 
+		// If zoom is small (wide area) or at threshold, hide airports without runways.
+		if (typeof zoom === "number" && zoom <= 6) {
+			const runwayByAirport = new Set<string | number>();
+			for (const rw of runways) {
+				if (rw.airport_ref) runwayByAirport.add(String(rw.airport_ref));
+				if (rw.airport_ident) runwayByAirport.add(String(rw.airport_ident));
+			}
+			// keep airports that match runways by airport_ref or ident or iata
+			for (let i = airports.length - 1; i >= 0; i--) {
+				const a = airports[i] as any;
+				const match =
+					runwayByAirport.has(String(a.id)) ||
+					runwayByAirport.has(String(a.ident)) ||
+					runwayByAirport.has(String(a.iata));
+				if (!match) airports.splice(i, 1);
+			}
+		}
+
 		// Draw overlays in rotated frame
 		ctx.save();
 		ctx.lineCap = "round";
@@ -257,6 +278,23 @@ export async function renderFrameForFlight(
 			(b) => findRunwaysInBox(b.min.lat, b.min.long, b.max.lat, b.max.long),
 			(r: any) => String(r.id),
 		);
+
+		// If zoom is small (wide area) or at threshold, hide airports without runways.
+		if (typeof zoom === "number" && zoom <= 6) {
+			const runwayByAirport = new Set<string | number>();
+			for (const rw of runways) {
+				if (rw.airport_ref) runwayByAirport.add(String(rw.airport_ref));
+				if (rw.airport_ident) runwayByAirport.add(String(rw.airport_ident));
+			}
+			for (let i = airports.length - 1; i >= 0; i--) {
+				const a = airports[i] as any;
+				const match =
+					runwayByAirport.has(String(a.id)) ||
+					runwayByAirport.has(String(a.ident)) ||
+					runwayByAirport.has(String(a.iata));
+				if (!match) airports.splice(i, 1);
+			}
+		}
 
 		ctx.save();
 		ctx.lineCap = "round";
