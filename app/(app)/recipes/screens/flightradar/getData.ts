@@ -9,12 +9,13 @@ import {
     Location,
     Trail,
     DepartureKind,
-    BoundingBox, EnvironmentOverlays
+    BoundingBox, EnvironmentOverlays, DisplayData
 } from "./schema";
 import {Trace} from "./schema_external/adsbexchange_trace";
 import {FR24PlaybackResult} from "./schema_external/fr24_flightplayback";
 import {FullTimeData} from "./schema_external/fr24_flight_list";
 import {loadAllSync, findAirportInBox, findNavaidsInBox, findRunwaysInBox} from "./csv_handler";
+import {WikipediaData} from "@/app/(app)/recipes/screens/wikipedia/getData";
 
 loadAllSync();
 
@@ -268,4 +269,8 @@ async function getFlightData(id: FlightID) : Promise<FlightData | null> {
         curr: curr,
         metadata: metadata
     }
+}
+
+export default async function getData(): Promise<DisplayData> {
+    throw new Error("Not implemented");
 }
