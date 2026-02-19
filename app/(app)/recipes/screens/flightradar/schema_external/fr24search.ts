@@ -9,7 +9,7 @@ type AllDetailType =
 
 export interface FR24AirportDetail {
 	lat: number;
-	long: number;
+	lon: number;
 	size: number;
 }
 
