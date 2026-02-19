@@ -15,7 +15,7 @@ import {Trace} from "./schema_external/adsbexchange_trace";
 import {FR24PlaybackResult} from "./schema_external/fr24_flightplayback";
 import {FullTimeData} from "./schema_external/fr24_flight_list";
 import {loadAllSync, findAirportInBox, findNavaidsInBox, findRunwaysInBox} from "./csv_handler";
-import { bboxForFlightDegrees } from "./map";
+import {bboxForFlightDegrees, mergeBoxQueries} from "./map";
 
 loadAllSync();
 
@@ -91,6 +91,13 @@ export function getOverlayInZone(bound: BoundingBox) : EnvironmentOverlays {
     const runways = findRunwaysInBox(bottom_left.lat, bottom_left.long, top_right.lat, top_right.long);
     const navaids = findNavaidsInBox(bottom_left.lat, bottom_left.long, top_right.lat, top_right.long);
     const airports = findAirportInBox(bottom_left.lat, bottom_left.long, top_right.lat, top_right.long);
+    return {runways, navaids, airports};
+}
+
+export function getOverlayInSplitZone(boxes: BoundingBox[]) : EnvironmentOverlays {
+    const runways = mergeBoxQueries(boxes, b=> findRunwaysInBox(b.min.lat, b.min.long, b.max.lat, b.max.long), r=> String(r.id));
+    const navaids = mergeBoxQueries(boxes, b=> findNavaidsInBox(b.min.lat, b.min.long, b.max.lat, b.max.long), n=> String(n.id));
+    const airports = mergeBoxQueries(boxes, b=> findAirportInBox(b.min.lat, b.min.long, b.max.lat, b.max.long), a=> String(a.id ?? a.ident ?? a.iata ?? a.name ?? JSON.stringify(a)));
     return {runways, navaids, airports};
 }
 
