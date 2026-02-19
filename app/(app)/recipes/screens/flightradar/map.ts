@@ -142,6 +142,7 @@ export function shiftFeatureCollectionToRef(
 			// safe to treat coordinates as nested Position arrays
 			// @ts-ignore assign back with properly shifted coords
 			g.coordinates = shiftCoordsRecursive(
+				// @ts-ignore
 				g.coordinates as GeoCoords,
 				refLon,
 			) as any;

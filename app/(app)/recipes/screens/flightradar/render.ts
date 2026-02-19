@@ -183,7 +183,7 @@ export async function renderFrameForFlight(
 		const proj = createProjector(combined, width, height, refLon);
 
 		// Query overlays and dedupe
-		const airports = mergeBoxQueries(
+		let airports = mergeBoxQueries(
 			boxes.split,
 			(b) => findAirportInBox(b.min.lat, b.min.long, b.max.lat, b.max.long),
 			(a: any) => String(a.id),
@@ -215,6 +215,10 @@ export async function renderFrameForFlight(
 					runwayByAirport.has(String(a.iata));
 				if (!match) airports.splice(i, 1);
 			}
+		}
+
+		if (typeof zoom === "number" && zoom <= 3) {
+			airports = [];
 		}
 
 		// Draw overlays in rotated frame
@@ -263,7 +267,7 @@ export async function renderFrameForFlight(
 		drawMapBackground(ctx, topo, combined, width, height, refLon);
 
 		const proj = createProjector(combined, width, height, refLon);
-		const airports = mergeBoxQueries(
+		let airports = mergeBoxQueries(
 			boxes.split,
 			(b) => findAirportInBox(b.min.lat, b.min.long, b.max.lat, b.max.long),
 			(a: any) => String(a.id),
@@ -294,6 +298,10 @@ export async function renderFrameForFlight(
 					runwayByAirport.has(String(a.iata));
 				if (!match) airports.splice(i, 1);
 			}
+		}
+
+		if (typeof zoom === "number" && zoom <= 3) {
+			airports = [];
 		}
 
 		ctx.save();
