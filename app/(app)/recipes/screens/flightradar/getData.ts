@@ -555,8 +555,8 @@ export default async function getData({
 			: (location?.long ?? 0);
 	// choose resolution: default 110m, medium 50m, high 10m
 	let res: "10m" | "50m" | "110m" = "110m";
-	if (zoom >= 7) res = "10m";
-	else if (zoom > 4 && zoom < 7) res = "50m";
+	if (zoom >= 5) res = "10m";
+	else if (zoom > 2 && zoom < 5) res = "50m";
 
 	// Development override: allow forcing 50m topo even at low zooms to
 	// diagnose seam/render issues. Set env FLIGHTMAP_FORCE_50M=1 to enable.

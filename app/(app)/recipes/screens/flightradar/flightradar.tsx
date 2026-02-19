@@ -73,6 +73,22 @@ export default async function FlightRadar(
 	// format nearby list
 	const nearbyItems = data.nearby || [];
 
+	// compute great-circle distance in kilometers between two lat/lon points
+	function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number) {
+		const toRad = (d: number) => (d * Math.PI) / 180;
+		const R = 6371; // km
+		const dLat = toRad(lat2 - lat1);
+		const dLon = toRad(lon2 - lon1);
+		const a =
+			Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+			Math.cos(toRad(lat1)) *
+				Math.cos(toRad(lat2)) *
+				Math.sin(dLon / 2) *
+				Math.sin(dLon / 2);
+		const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+		return R * c;
+	}
+
 	// details depending on type
 	function Details() {
 		const containerStyle: React.CSSProperties = {
@@ -158,8 +174,8 @@ export default async function FlightRadar(
 		<PreSatori width={800} height={480}>
 			<div
 				style={{
-					width: 800,
-					height: 480,
+					width: "100vw",
+					height: "100vh",
 					boxSizing: "border-box",
 					display: "flex",
 					alignItems: "stretch",
@@ -169,8 +185,8 @@ export default async function FlightRadar(
 			>
 				<div
 					style={{
-						width: 800,
-						height: 480,
+						width: "100%",
+						height: "100%",
 						border: "12px solid #000",
 						borderRadius: 10,
 						overflow: "hidden",
@@ -192,7 +208,9 @@ export default async function FlightRadar(
 						{/* Left column */}
 						<div
 							style={{
-								width: 300,
+								width: 360,
+								minWidth: 320,
+								maxWidth: 480,
 								display: "flex",
 								flexDirection: "column",
 								gap: 8,
@@ -249,18 +267,21 @@ export default async function FlightRadar(
 						{/* Right column */}
 						<div
 							style={{
-								width: 280,
+								flex: 1,
 								paddingLeft: 8,
 								boxSizing: "border-box",
-								height: 448,
+								height: "100%",
 								borderRight: "1px solid #000",
+								display: "flex",
+								flexDirection: "column",
+								alignItems: "stretch",
 							}}
 						>
 							<ul
 								style={{
 									display: "flex",
 									flexDirection: "column",
-									gap: 6,
+									gap: 12,
 									height: "100%",
 									overflow: "hidden",
 									padding: 0,
@@ -268,25 +289,70 @@ export default async function FlightRadar(
 									listStyle: "none",
 								}}
 							>
-								{nearbyItems.map((n, i) => (
-									<li
-										key={i}
-										style={{
-											padding: "8px 10px",
-											border: "1px solid #000",
-											borderRadius: 6,
-											background: "#fff",
-										}}
-									>
-										<div style={{ fontSize: 16, fontWeight: 600 }}>
-											{n.flight.id.callsign} ({n.flight.id.hex})
-										</div>
-										<div style={{ fontSize: 14, color: "#666", marginTop: 4 }}>
-											{n.flight.loc.loc.lat.toFixed(4)},{" "}
-											{n.flight.loc.loc.long.toFixed(4)}
-										</div>
-									</li>
-								))}
+								{nearbyItems.map((n, i) => {
+									const loc = n.flight.loc.loc;
+									const track = n.flight.loc.track ?? 0;
+									const alt = n.flight.loc.alt ?? 0;
+									const speed = n.flight.loc.speed ?? 0;
+									const distKm = data.center_loc
+										? haversineKm(
+												loc.lat,
+												loc.long,
+												data.center_loc.lat,
+												data.center_loc.long,
+											).toFixed(1)
+										: "-";
+									return (
+										<li
+											key={i}
+											style={{
+												padding: "12px 14px",
+												borderBottom: "1px solid #e5e7eb",
+												background: "#fff",
+												display: "flex",
+												alignItems: "center",
+												justifyContent: "space-between",
+											}}
+										>
+											<div
+												style={{
+													display: "flex",
+													flexDirection: "column",
+													gap: 6,
+												}}
+											>
+												<div style={{ fontSize: 20, fontWeight: 700 }}>
+													{n.flight.id.callsign || "N/A"} ({n.flight.id.hex})
+												</div>
+												<div style={{ fontSize: 14, color: "#444" }}>
+													Alt: {Math.round(alt)} m · Speed: {Math.round(speed)}{" "}
+													· Hdg: {Math.round(track)}°
+												</div>
+											</div>
+											<div
+												style={{
+													textAlign: "right",
+													display: "flex",
+													flexDirection: "column",
+													minWidth: 160,
+												}}
+											>
+												<div
+													style={{
+														fontSize: 16,
+														color: "#111",
+														fontWeight: 600,
+													}}
+												>
+													{loc.lat.toFixed(4)}, {loc.long.toFixed(4)}
+												</div>
+												<div style={{ fontSize: 14, color: "#666" }}>
+													{distKm} km
+												</div>
+											</div>
+										</li>
+									);
+								})}
 							</ul>
 						</div>
 					</div>

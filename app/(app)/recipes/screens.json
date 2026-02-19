@@ -205,7 +205,7 @@
 				"type": "string",
 				"label": "Location Parameter",
 				"description": "Location Parameter: (loc:lat,long,zoom, airport:code,zoom, flight:callsign,hex)",
-				"default": "airport:JFK,8"
+				"default": "airport:HKG,7"
 			}
 		},
 		"tags": ["flight", "api", "live-data", "configurable"],
