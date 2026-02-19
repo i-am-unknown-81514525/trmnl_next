@@ -9,7 +9,7 @@ import {clampLat, normalizeLon, degToRad} from "./map_utils";
 // Accept either DOM CanvasRenderingContext2D or SKRSContext2D from @napi-rs/canvas
 type CanvasLike = CanvasRenderingContext2D | SKRSContext2D;
 
-export function bboxForFlightDegrees(flight: FlightLocation, forwardRatio: number = 1.5) : BoundingBox[] {
+export function bboxForFlightDegrees(flight: FlightLocation, forwardRatio: number = 1.5) : { unified: BoundingBox, split: BoundingBox[] } {
     const baseDeg = 0.02;
     const speedScale = 200; // kt
     const altScale = 10000; // ft
@@ -47,8 +47,22 @@ export function bboxForFlightDegrees(flight: FlightLocation, forwardRatio: numbe
     let span = rawMaxLon - rawMinLon;
     if (span < 0) span += 360;
 
+    const box = {
+        min: {
+            lat: minLat,
+            long: rawMinLon
+        },
+        max: {
+            lat: maxLat,
+            long: rawMaxLon
+        }
+    };
     if (span <= 180) {
-        return [
+        return {unified: box, split: [box]};
+    }
+    return {
+        unified: box,
+        split: [
             {
                 min: {
                     lat: minLat,
@@ -56,33 +70,21 @@ export function bboxForFlightDegrees(flight: FlightLocation, forwardRatio: numbe
                 },
                 max: {
                     lat: maxLat,
+                    long: 180
+                }
+            },
+            {
+                min: {
+                    lat: minLat,
+                    long: -180
+                },
+                max: {
+                    lat: maxLat,
                     long: rawMaxLon
                 }
             }
-        ];
-    }
-    return [
-        {
-            min: {
-                lat: minLat,
-                long: rawMinLon
-            },
-            max: {
-                lat: maxLat,
-                long: 180
-            }
-        },
-        {
-            min: {
-                lat: minLat,
-                long: -180
-            },
-            max: {
-                lat: maxLat,
-                long: rawMaxLon
-            }
-        }
-    ];
+        ]
+    };
 }
 
 // Merge query results from 1 or 2 bounding boxes and dedupe by id.

@@ -15,7 +15,7 @@ import {Trace} from "./schema_external/adsbexchange_trace";
 import {FR24PlaybackResult} from "./schema_external/fr24_flightplayback";
 import {FullTimeData} from "./schema_external/fr24_flight_list";
 import {loadAllSync, findAirportInBox, findNavaidsInBox, findRunwaysInBox} from "./csv_handler";
-import {WikipediaData} from "@/app/(app)/recipes/screens/wikipedia/getData";
+import { bboxForFlightDegrees } from "./map";
 
 loadAllSync();
 
@@ -269,6 +269,70 @@ async function getFlightData(id: FlightID) : Promise<FlightData | null> {
         curr: curr,
         metadata: metadata
     }
+}
+
+
+
+function zoomToDegreeRadius(zoom = 10): number {
+    const z = Math.max(0, Math.min(15, zoom));
+    const base = 0.025; // degrees at zoom=10 (≈2.5km at equator); adjust to taste
+    return base * Math.pow(2, 10 - z);
+}
+
+/** normalize longitude into [-180, 180) */
+function normalizeLon(lon: number): number {
+    return ((((lon + 180) % 360) + 360) % 360) - 180;
+}
+
+export function getViewBoundingBox(
+    tracking: TrackingKind,
+    center_loc: Location,
+    forward_ratio = 1.3,
+    zoom?: number
+): { unified: BoundingBox, split: BoundingBox[] } {
+    if (tracking.kind === "flight") {
+        return bboxForFlightDegrees(tracking.flight.curr.loc, forward_ratio);
+    }
+
+    const center = tracking.kind === "static_airport"
+        ? tracking.airport.loc
+        : tracking.kind === "static_location"
+            ? tracking.location
+            : center_loc;
+
+    const radius = zoomToDegreeRadius(zoom ?? 10);
+    const minLat = Math.max(-90, center.lat - radius);
+    const maxLat = Math.min(90, center.lat + radius);
+    let minLon = center.long - radius;
+    let maxLon = center.long + radius;
+    minLon = normalizeLon(minLon);
+    maxLon = normalizeLon(maxLon);
+    const box = {
+        min: { lat: minLat, long: minLon },
+        max: { lat: maxLat, long: maxLon }
+    };
+
+    let span = maxLon - minLon;
+    if (span < 0) span += 360;
+
+    if (span <= 180) {
+        return { unified: box, split: [box] };
+    }
+
+    return {
+        unified: box,
+        split: [
+            { min: { lat: minLat, long: minLon }, max: { lat: maxLat, long: 180 } },
+            { min: { lat: minLat, long: -180 }, max: { lat: maxLat, long: maxLon } }
+        ]
+    };
+}
+
+export function getVisualBearing(tracking: TrackingKind): number {
+    if (tracking.kind === "flight") {
+        return tracking.flight.curr.loc.track ?? 0;
+    }
+    return 0;
 }
 
 export default async function getData({locParam}: {locParam: string}): Promise<DisplayData> {
