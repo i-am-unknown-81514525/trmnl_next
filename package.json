@@ -17,6 +17,7 @@
 		"release:patch": "pnpm version patch -m 'chore(release): %s' && git push --follow-tags"
 	},
 	"dependencies": {
+		"@napi-rs/canvas": "^0.1.93",
 		"@radix-ui/react-aspect-ratio": "^1.1.8",
 		"@radix-ui/react-avatar": "^1.1.11",
 		"@radix-ui/react-collapsible": "^1.1.12",
