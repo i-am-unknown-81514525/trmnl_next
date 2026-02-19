@@ -12,9 +12,14 @@ import {
 	findRunwaysInBox,
 	findNavaidsInBox,
 } from "./csv_handler";
+
 import { clampLat, normalizeLon, degToRad } from "./map_utils";
 import type { TopoOrGeo } from "./map";
-import type { FlightLocation, BoundingBox } from "./schema";
+import type {
+	FlightLocation,
+	BoundingBox,
+	ForeignFlightDataDisplay,
+} from "./schema";
 
 function combineBoxesToContinuous(
 	boxes: BoundingBox[],
@@ -92,6 +97,8 @@ export async function renderFrameForFlight(
 		zoom?: number;
 		// whether to draw the aircraft glyph at center
 		showAircraft?: boolean;
+		// optional nearby flights to draw on the map
+		nearby?: ForeignFlightDataDisplay[];
 	},
 ) {
 	const DPR = opts.dpr ?? 1;
@@ -140,26 +147,22 @@ export async function renderFrameForFlight(
 	const combined = boxes.unified;
 
 	if (process.env.FLIGHTMAP_DEBUG === "1") {
-		try {
-			console.log("renderFrameForFlight (used bounding):", {
-				DPR,
-				width,
-				height,
-				refLon,
-				bounding: {
-					min: {
-						lat: combined.min.lat.toFixed(6),
-						long: combined.min.long.toFixed(6),
-					},
-					max: {
-						lat: combined.max.lat.toFixed(6),
-						long: combined.max.long.toFixed(6),
-					},
+		console.log("renderFrameForFlight (used bounding):", {
+			DPR,
+			width,
+			height,
+			refLon,
+			bounding: {
+				min: {
+					lat: combined.min.lat.toFixed(6),
+					long: combined.min.long.toFixed(6),
 				},
-			});
-		} catch (e) {
-			console.log("render debug failed", e);
-		}
+				max: {
+					lat: combined.max.lat.toFixed(6),
+					long: combined.max.long.toFixed(6),
+				},
+			},
+		});
 	}
 
 	const cx = width / 2;
@@ -167,6 +170,8 @@ export async function renderFrameForFlight(
 	const rad = degToRad(flight.track || 0);
 
 	const doRotate = process.env.FLIGHTMAP_NO_ROTATE !== "1";
+
+	const nearby = opts.nearby ?? [];
 
 	// If rotation is enabled (default), rotate canvas so track points up and
 	// draw background + overlays in that rotated frame. When debugging seam
@@ -347,6 +352,54 @@ export async function renderFrameForFlight(
 		ctx.restore();
 	}
 
+	// Draw nearby flights (icons + optional labels)
+	try {
+		const proj = createProjector(combined, width, height, refLon);
+		if (process.env.FLIGHTMAP_DEBUG === "1") {
+			console.log("render: nearby count", nearby.length);
+			if (nearby.length > 0) {
+				const s = nearby[0].flight as any;
+				console.log("render: nearby sample", { id: s.id, loc: s.loc });
+			}
+		}
+		for (const entry of nearby) {
+			const ff = entry.flight;
+			const lat = ff.loc.loc.lat;
+			const lon = shiftLonToRef(ff.loc.loc.long, refLon);
+			const [x, y] = proj.project(lat, lon);
+
+			const track = ff.loc.track ?? 0;
+			const planeSize = 6;
+			ctx.save();
+			ctx.translate(x, y);
+			ctx.rotate(-degToRad(track || 0));
+			ctx.fillStyle = "#111";
+			ctx.beginPath();
+			ctx.moveTo(0, -planeSize);
+			ctx.lineTo(planeSize / 2, planeSize / 2);
+			ctx.lineTo(-planeSize / 2, planeSize / 2);
+			ctx.closePath();
+			ctx.fill();
+			ctx.restore();
+
+			// label only when zoom meets requirement
+			const req = entry.parameter?.require_zoom ?? 0;
+			if (typeof zoom === "number" && zoom >= req) {
+				ctx.fillStyle = "#000";
+				ctx.font = "10px sans-serif";
+				ctx.textBaseline = "top";
+				ctx.textAlign = "left";
+				ctx.fillText(
+					ff.id.callsign || ff.id.hex || "",
+					x + planeSize + 4,
+					y - 6,
+				);
+			}
+		}
+	} catch (e) {
+		// ignore
+	}
+
 	// Draw visible bounding box (for debugging) in canvas coordinates
 	if (process.env.FLIGHTMAP_DEBUG === "1") {
 		try {
@@ -379,6 +432,18 @@ export async function renderFrameForFlight(
 	// Draw aircraft glyph at center (upright) when requested
 	// Default to false to avoid plotting a plane for static locations/airports
 	const showAircraft = opts.showAircraft ?? false;
+	if (process.env.FLIGHTMAP_DEBUG === "1") {
+		try {
+			console.log("render: center-plane", {
+				showAircraft,
+				passed: opts.showAircraft,
+				zoom: typeof zoom === "number" ? zoom : null,
+				ident: (flight as any)?.ident ?? (flight as any)?.id?.callsign ?? null,
+			});
+		} catch (e) {
+			// ignore
+		}
+	}
 	if (showAircraft) {
 		ctx.save();
 		ctx.fillStyle = "#000";

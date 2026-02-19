@@ -63,6 +63,7 @@ export default async function FlightRadar(
 			boundingBox: data.bound,
 			refLon,
 			zoom: data.zoom,
+			nearby: data.nearby,
 		});
 		mapImg = `data:image/png;base64,${buf.toString("base64")}`;
 	} catch (e) {

@@ -293,7 +293,10 @@ export function drawMapBackground(
 							// the map — start a new subpath instead. This avoids
 							// connecting across dateline/unwrapped seams which can
 							// invert fills.
-							if (prevX !== null && Math.abs(x - prevX) > Math.max(1, width * 0.45)) {
+							if (
+								prevX !== null &&
+								Math.abs(x - prevX) > Math.max(1, width * 0.45)
+							) {
 								ctx.moveTo(x, y);
 							} else {
 								ctx.lineTo(x, y);
@@ -302,7 +305,12 @@ export function drawMapBackground(
 						prevX = x;
 					}
 					// ensure ring is closed if start and end are adjacent (no huge gap)
-					if (ring.length > 0 && firstX !== null && prevX !== null && Math.abs(firstX - prevX) <= Math.max(1, width * 0.45)) {
+					if (
+						ring.length > 0 &&
+						firstX !== null &&
+						prevX !== null &&
+						Math.abs(firstX - prevX) <= Math.max(1, width * 0.45)
+					) {
 						ctx.lineTo(firstX, firstY as number);
 					}
 				}
