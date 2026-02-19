@@ -1,4 +1,4 @@
-import { Decompressor } from "zstd-wasm";
+// import { Decompressor } from "zstd-wasm";
 import {
 	FR24SearchResult,
 	getAirport,
@@ -36,6 +36,8 @@ import {
 	shiftFeatureCollectionToRef,
 } from "./map";
 import { feature as topoFeature } from "topojson-client";
+// import { decompress } from "@skhaz/zstd";
+import { decompress } from "fzstd";
 
 loadAllSync();
 
@@ -73,7 +75,7 @@ async function getFlightInZone(
 			headers: {
 				Referer: "https://globe.adsbexchange.com/",
 				"User-Agent":
-					"User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36",
+					"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36",
 			},
 			cache: "no-store",
 		},
@@ -82,9 +84,9 @@ async function getFlightInZone(
 		throw new Error(`HTTP error! Status: ${response.status}`);
 	}
 	const body = await response.bytes();
-	const decompressor = new Decompressor();
-	await decompressor.init();
-	const data = decompressor.decompress(body);
+	// const decompressor = new Decompressor();
+	// await decompressor.init();
+	const data = decompress(Buffer.from(body));
 
 	const view = new DataView(data.buffer, data.byteOffset, data.byteLength);
 	if (data.byteLength < 12) return [];

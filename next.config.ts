@@ -10,7 +10,18 @@ const nextConfig: NextConfig = {
 	serverExternalPackages: [
 		"@takumi-rs/core",
 		"@takumi-rs/helpers",
+		'@napi-rs/canvas'
 	],
+	webpack: (config, { isServer }) => {
+		// Required for loading .wasm files via new URL()
+		config.experiments = {
+			...config.experiments,
+			asyncWebAssembly: true,
+			layers: true,
+		};
+
+		return config;
+	},
 };
 
 export default nextConfig;

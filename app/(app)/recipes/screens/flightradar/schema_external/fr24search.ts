@@ -68,7 +68,7 @@ export interface FR24SearchEntry {
 }
 
 export interface FR24SearchResult {
-	result: FR24SearchEntry[];
+	results: FR24SearchEntry[];
 	info: { grpcEnabled: true };
 	stats: { total: FR24ResultStats; count: FR24ResultStats };
 }
@@ -83,8 +83,8 @@ export function getLive(
 	type: ResultType;
 	match: MatchType;
 } | null {
-	for (let i = 0; i < result.result.length; i++) {
-		const entry: FR24SearchEntry = result.result[i];
+	for (let i = 0; i < result.results.length; i++) {
+		const entry: FR24SearchEntry = result.results[i];
 		if (entry.type !== "live") {
 			continue;
 		}
@@ -112,8 +112,8 @@ export function getAirport(
 	type: ResultType;
 	match: MatchType;
 } | null {
-	for (let i = 0; i < result.result.length; i++) {
-		const entry: FR24SearchEntry = result.result[i];
+	for (let i = 0; i < result.results.length; i++) {
+		const entry: FR24SearchEntry = result.results[i];
 		if (entry.type !== "airport") {
 			continue;
 		}
