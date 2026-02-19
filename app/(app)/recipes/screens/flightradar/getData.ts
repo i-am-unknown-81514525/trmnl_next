@@ -9,7 +9,7 @@ import {
     Location,
     Trail,
     DepartureKind,
-    BoundingBox, EnvironmentOverlays, DisplayData
+    BoundingBox, EnvironmentOverlays, DisplayData, TrackingKind
 } from "./schema";
 import {Trace} from "./schema_external/adsbexchange_trace";
 import {FR24PlaybackResult} from "./schema_external/fr24_flightplayback";
@@ -272,5 +272,49 @@ async function getFlightData(id: FlightID) : Promise<FlightData | null> {
 }
 
 export default async function getData({locParam}: {locParam: string}): Promise<DisplayData> {
+    let kind: TrackingKind | null = null;
+    let zoom: number | null = null;
+    if (locParam.startsWith("airport:")) {
+        const params = locParam.substring(8).split(",");
+        const airport = await getFr24AirportLocation(params[0]);
+        if (airport === null) {
+            throw new Error(`Airport ${params[0]} not found`);
+        }
+        if (params[1]) {
+            zoom = Number(params[1]);
+            if (zoom < 0) zoom = 0;
+            if (zoom > 15) zoom = 15;
+            if (isNaN(zoom)) zoom = 10;
+        }
+        kind = {kind: "static_airport", airport: airport};
+    } else if (locParam.startsWith("loc:")) {
+        const params = locParam.substring(4).split(",");
+        const lat = Number(params[0]);
+        const long = Number(params[1]);
+        if (isNaN(lat) || isNaN(long)) {
+            throw new Error("Invalid location parameter");
+        }
+        if (lat < -90 || lat > 90 || long < -180 || long > 180) {
+            throw new Error("Invalid location parameter (Out of polar coordinate)");
+        }
+        if (params[2]) {
+            zoom = Number(params[2]);
+            if (zoom < 0) zoom = 0;
+            if (zoom > 15) zoom = 15;
+            if (isNaN(zoom)) zoom = 10;
+        }
+
+        kind = {kind: "static_location", location: {lat: lat, long: long}};
+    } else if (locParam.startsWith("flight:")) {
+        const params: string[] = locParam.substring(7).split(",");
+        const callsign = params[0];
+        const hex = params[1];
+        const data = await getFlightData({hex: hex, callsign: callsign, fr24_hex8: null});
+        if (data === null) {
+            throw new Error("Flight not found");
+        }
+        kind = {kind: "flight", flight: data};
+    }
+
     throw new Error("Not implemented");
 }

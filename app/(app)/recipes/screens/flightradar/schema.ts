@@ -65,7 +65,7 @@ export interface Airport {
     loc: Location
 }
 
-type TrackingKind =
+export type TrackingKind =
     | { kind: 'static_location', location: Location }
     | { kind: 'static_airport', airport: Airport }
     | { kind: 'flight'; flight: FlightData };
