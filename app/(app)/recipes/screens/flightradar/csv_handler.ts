@@ -2,6 +2,7 @@ import fs from 'fs';
 import { parse } from 'csv-parse/sync';
 import Flatbush from 'flatbush';
 import {AirportExtended, Runway, Navaid} from "./schema_external/scraped_data";
+import {clampLat, normalizeLon} from "./map_utils";
 
 function toNum(v: string | undefined) : number | null {
     if (v === undefined || v === null || v === '') return null;
@@ -12,19 +13,6 @@ function toNum(v: string | undefined) : number | null {
 function toBool(v: string | undefined) : boolean {
     if (!v) return false;
     return ['1', 'true'].includes(v.toLowerCase());
-}
-
-function normalizeLon(lon: number) {
-    let v = lon;
-    while (v > 180) v -= 360;
-    while (v <= -180) v += 360;
-    return v;
-}
-
-function clampLat(lat: number) {
-    if (lat > 90) return 90;
-    if (lat < -90) return -90;
-    return lat;
 }
 
 let loaded: boolean = false;
