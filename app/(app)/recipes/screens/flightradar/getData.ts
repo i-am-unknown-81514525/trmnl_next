@@ -309,7 +309,7 @@ async function getFr24AirportLocation(
 	return {
 		code: entry.id,
 		name: entry.label,
-		loc: { lat: entry.detail.lat, long: entry.detail.long },
+		loc: { lat: entry.detail.lat, long: entry.detail.lon },
 	};
 }
 
@@ -405,8 +405,15 @@ export function getViewBoundingBox(
 				: center_loc;
 
 	const radius = zoomToDegreeRadius(zoom ?? 10);
-	const minLat = Math.max(-90, center.lat - radius);
-	const maxLat = Math.min(90, center.lat + radius);
+	// If the requested radius would cross the poles, recenter the view latitude
+	// so the box stays symmetric around the center as much as possible while
+	// keeping latitude inside [-90, 90]. This avoids degenerate boxes pinned
+	// to the pole.
+	let centerLat = center.lat;
+	if (centerLat - radius < -90) centerLat = -90 + radius;
+	if (centerLat + radius > 90) centerLat = 90 - radius;
+	const minLat = Math.max(-90, centerLat - radius);
+	const maxLat = Math.min(90, centerLat + radius);
 	let minLon = center.long - radius;
 	let maxLon = center.long + radius;
 	minLon = normalizeLon(minLon);
@@ -505,6 +512,21 @@ export default async function getData({
 		zoom ?? undefined,
 	);
 
+	if (process.env.FLIGHTMAP_DEBUG === "1") {
+		try {
+			const bb = bounding_box.unified;
+			console.log("getData: locParam, parsed zoom, radiusDeg, bounding_box:", {
+				locParam,
+				zoom,
+				radiusDeg: zoomToDegreeRadius(zoom ?? 10),
+				min: { lat: bb.min.lat.toFixed(6), long: bb.min.long.toFixed(6) },
+				max: { lat: bb.max.lat.toFixed(6), long: bb.max.long.toFixed(6) },
+			});
+		} catch (e) {
+			console.log("getData debug failed", e);
+		}
+	}
+
 	let planes = [];
 	for (const box of bounding_box.split) {
 		planes.push(...(await getFlightInZone(box)));
@@ -536,6 +558,12 @@ export default async function getData({
 	if (zoom >= 7) res = "10m";
 	else if (zoom > 4 && zoom < 7) res = "50m";
 
+	// Development override: allow forcing 50m topo even at low zooms to
+	// diagnose seam/render issues. Set env FLIGHTMAP_FORCE_50M=1 to enable.
+	if (process.env.FLIGHTMAP_FORCE_50M === "1") {
+		res = "50m";
+	}
+
 	let topo = await loadLandTopoOnce(res);
 
 	let land_geo: TopoOrGeo = { type: "FeatureCollection", features: [] } as any;
@@ -549,20 +577,19 @@ export default async function getData({
 			try {
 				const fc = topoFeature(topoObj, topoObj.objects[key]);
 				if (fc && (fc as any).type === "FeatureCollection") {
-					land_geo = shiftFeatureCollectionToRef(
-						fc as any,
-						refLon as number,
-					) as TopoOrGeo;
+					// Do not pre-shift coordinates here; let the renderer/projector
+					// handle longitude unwrapping when drawing. Keeping raw feature
+					// collections avoids double-shifting and seams.
+					land_geo = fc as any;
 				}
 			} catch (e) {
 				// fallback to empty
 				land_geo = { type: "FeatureCollection", features: [] } as any;
 			}
 		} else if ((topo as any).type === "FeatureCollection") {
-			land_geo = shiftFeatureCollectionToRef(
-				topo as any,
-				refLon as number,
-			) as TopoOrGeo;
+			// Pass through raw feature collection; renderer will project per-point
+			// using the provided refLon to ensure continuity.
+			land_geo = topo as any;
 		}
 	}
 
@@ -573,6 +600,7 @@ export default async function getData({
 		overlays: overlays,
 		visual_bearing,
 		bound: bounding_box.unified,
+		zoom,
 		forward_ratio: fwd,
 		land_geo,
 	};

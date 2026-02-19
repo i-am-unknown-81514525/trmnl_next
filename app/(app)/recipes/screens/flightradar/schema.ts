@@ -102,6 +102,8 @@ export interface DisplayData {
 	nearby: ForeignFlightDataDisplay[];
 	overlays: EnvironmentOverlays;
 	bound: BoundingBox;
+	// numeric zoom used to compute `bound` (higher = closer)
+	zoom?: number;
 	visual_bearing: number;
 	forward_ratio: number;
 	land_geo: TopoOrGeo;

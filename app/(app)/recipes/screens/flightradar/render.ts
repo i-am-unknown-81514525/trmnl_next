@@ -134,74 +134,199 @@ export async function renderFrameForFlight(
 	}
 	const combined = boxes.unified;
 
+	if (process.env.FLIGHTMAP_DEBUG === "1") {
+		try {
+			console.log("renderFrameForFlight (used bounding):", {
+				DPR,
+				width,
+				height,
+				refLon,
+				bounding: {
+					min: {
+						lat: combined.min.lat.toFixed(6),
+						long: combined.min.long.toFixed(6),
+					},
+					max: {
+						lat: combined.max.lat.toFixed(6),
+						long: combined.max.long.toFixed(6),
+					},
+				},
+			});
+		} catch (e) {
+			console.log("render debug failed", e);
+		}
+	}
+
 	const cx = width / 2;
 	const cy = height / 2;
 	const rad = degToRad(flight.track || 0);
 
-	// Rotate canvas so track points up, draw background + overlays in rotated frame
-	ctx.save();
-	ctx.translate(cx, cy);
-	ctx.rotate(-rad);
-	ctx.translate(-cx, -cy);
+	const doRotate = process.env.FLIGHTMAP_NO_ROTATE !== "1";
 
-	// Draw background
-	drawMapBackground(ctx, topo, combined, width, height, refLon);
+	// If rotation is enabled (default), rotate canvas so track points up and
+	// draw background + overlays in that rotated frame. When debugging seam
+	// issues, set FLIGHTMAP_NO_ROTATE=1 to skip rotation and draw everything
+	// unrotated to check whether the rotation transform causes the artifact.
+	if (doRotate) {
+		ctx.save();
+		ctx.translate(cx, cy);
+		ctx.rotate(-rad);
+		ctx.translate(-cx, -cy);
 
-	// Projector for overlays
-	const proj = createProjector(combined, width, height, refLon);
+		// Draw background
+		drawMapBackground(ctx, topo, combined, width, height, refLon);
 
-	// Query overlays and dedupe
-	const airports = mergeBoxQueries(
-		boxes.split,
-		(b) => findAirportInBox(b.min.lat, b.min.long, b.max.lat, b.max.long),
-		(a: any) => String(a.id),
-	);
-	const navaids = mergeBoxQueries(
-		boxes.split,
-		(b) => findNavaidsInBox(b.min.lat, b.min.long, b.max.lat, b.max.long),
-		(n: any) => String(n.id),
-	);
-	const runways = mergeBoxQueries(
-		boxes.split,
-		(b) => findRunwaysInBox(b.min.lat, b.min.long, b.max.lat, b.max.long),
-		(r: any) => String(r.id),
-	);
+		// Projector for overlays
+		const proj = createProjector(combined, width, height, refLon);
 
-	// Draw overlays in rotated frame
-	ctx.save();
-	ctx.lineCap = "round";
-	ctx.lineJoin = "round";
+		// Query overlays and dedupe
+		const airports = mergeBoxQueries(
+			boxes.split,
+			(b) => findAirportInBox(b.min.lat, b.min.long, b.max.lat, b.max.long),
+			(a: any) => String(a.id),
+		);
+		const navaids = mergeBoxQueries(
+			boxes.split,
+			(b) => findNavaidsInBox(b.min.lat, b.min.long, b.max.lat, b.max.long),
+			(n: any) => String(n.id),
+		);
+		const runways = mergeBoxQueries(
+			boxes.split,
+			(b) => findRunwaysInBox(b.min.lat, b.min.long, b.max.lat, b.max.long),
+			(r: any) => String(r.id),
+		);
 
-	ctx.strokeStyle = "#444";
-	ctx.lineWidth = 1.5;
-	for (const rw of runways) {
-		const [x1, y1] = proj.project(rw.le_lat, shiftLonToRef(rw.le_long, refLon));
-		const [x2, y2] = proj.project(rw.he_lat, shiftLonToRef(rw.he_long, refLon));
-		ctx.beginPath();
-		ctx.moveTo(x1, y1);
-		ctx.lineTo(x2, y2);
-		ctx.stroke();
+		// Draw overlays in rotated frame
+		ctx.save();
+		ctx.lineCap = "round";
+		ctx.lineJoin = "round";
+
+		ctx.strokeStyle = "#444";
+		ctx.lineWidth = 1.5;
+		for (const rw of runways) {
+			const [x1, y1] = proj.project(
+				rw.le_lat,
+				shiftLonToRef(rw.le_long, refLon),
+			);
+			const [x2, y2] = proj.project(
+				rw.he_lat,
+				shiftLonToRef(rw.he_long, refLon),
+			);
+			ctx.beginPath();
+			ctx.moveTo(x1, y1);
+			ctx.lineTo(x2, y2);
+			ctx.stroke();
+		}
+
+		ctx.fillStyle = "#000";
+		for (const a of airports) {
+			const [x, y] = proj.project(a.lat, shiftLonToRef(a.lon, refLon));
+			ctx.beginPath();
+			ctx.arc(x, y, 3, 0, Math.PI * 2);
+			ctx.fill();
+		}
+
+		ctx.strokeStyle = "#222";
+		ctx.lineWidth = 1;
+		for (const n of navaids) {
+			const [x, y] = proj.project(n.lat, shiftLonToRef(n.lon, refLon));
+			ctx.beginPath();
+			ctx.arc(x, y, 2.5, 0, Math.PI * 2);
+			ctx.stroke();
+		}
+
+		ctx.restore(); // overlays in rotated frame
+		ctx.restore(); // finish rotation
+	} else {
+		// No rotation: draw background and overlays directly
+		drawMapBackground(ctx, topo, combined, width, height, refLon);
+
+		const proj = createProjector(combined, width, height, refLon);
+		const airports = mergeBoxQueries(
+			boxes.split,
+			(b) => findAirportInBox(b.min.lat, b.min.long, b.max.lat, b.max.long),
+			(a: any) => String(a.id),
+		);
+		const navaids = mergeBoxQueries(
+			boxes.split,
+			(b) => findNavaidsInBox(b.min.lat, b.min.long, b.max.lat, b.max.long),
+			(n: any) => String(n.id),
+		);
+		const runways = mergeBoxQueries(
+			boxes.split,
+			(b) => findRunwaysInBox(b.min.lat, b.min.long, b.max.lat, b.max.long),
+			(r: any) => String(r.id),
+		);
+
+		ctx.save();
+		ctx.lineCap = "round";
+		ctx.lineJoin = "round";
+
+		ctx.strokeStyle = "#444";
+		ctx.lineWidth = 1.5;
+		for (const rw of runways) {
+			const [x1, y1] = proj.project(
+				rw.le_lat,
+				shiftLonToRef(rw.le_long, refLon),
+			);
+			const [x2, y2] = proj.project(
+				rw.he_lat,
+				shiftLonToRef(rw.he_long, refLon),
+			);
+			ctx.beginPath();
+			ctx.moveTo(x1, y1);
+			ctx.lineTo(x2, y2);
+			ctx.stroke();
+		}
+
+		ctx.fillStyle = "#000";
+		for (const a of airports) {
+			const [x, y] = proj.project(a.lat, shiftLonToRef(a.lon, refLon));
+			ctx.beginPath();
+			ctx.arc(x, y, 3, 0, Math.PI * 2);
+			ctx.fill();
+		}
+
+		ctx.strokeStyle = "#222";
+		ctx.lineWidth = 1;
+		for (const n of navaids) {
+			const [x, y] = proj.project(n.lat, shiftLonToRef(n.lon, refLon));
+			ctx.beginPath();
+			ctx.arc(x, y, 2.5, 0, Math.PI * 2);
+			ctx.stroke();
+		}
+
+		ctx.restore();
 	}
 
-	ctx.fillStyle = "#000";
-	for (const a of airports) {
-		const [x, y] = proj.project(a.lat, shiftLonToRef(a.lon, refLon));
-		ctx.beginPath();
-		ctx.arc(x, y, 3, 0, Math.PI * 2);
-		ctx.fill();
+	// Draw visible bounding box (for debugging) in canvas coordinates
+	if (process.env.FLIGHTMAP_DEBUG === "1") {
+		try {
+			const bbMin = combined.min;
+			const bbMax = combined.max;
+			const [x1, y1] = createProjector(combined, width, height, refLon).project(
+				bbMin.lat,
+				bbMin.long,
+			);
+			const [x2, y2] = createProjector(combined, width, height, refLon).project(
+				bbMax.lat,
+				bbMax.long,
+			);
+			ctx.save();
+			ctx.strokeStyle = "rgba(255,0,0,0.9)";
+			ctx.lineWidth = 2;
+			ctx.setLineDash([4, 4]);
+			ctx.strokeRect(
+				Math.min(x1, x2),
+				Math.min(y1, y2),
+				Math.abs(x2 - x1),
+				Math.abs(y2 - y1),
+			);
+			ctx.restore();
+		} catch (e) {
+			// ignore
+		}
 	}
-
-	ctx.strokeStyle = "#222";
-	ctx.lineWidth = 1;
-	for (const n of navaids) {
-		const [x, y] = proj.project(n.lat, shiftLonToRef(n.lon, refLon));
-		ctx.beginPath();
-		ctx.arc(x, y, 2.5, 0, Math.PI * 2);
-		ctx.stroke();
-	}
-
-	ctx.restore(); // overlays in rotated frame
-	ctx.restore(); // finish rotation
 
 	// Draw aircraft glyph at center (upright)
 	ctx.save();
@@ -223,7 +348,10 @@ export async function renderFrameForFlight(
 	ctx.textAlign = "left";
 	ctx.fillText((flight as any).ident || "", cx + planeSize + 6, cy);
 
-	return canvas.toBuffer("image/png");
+	const buf = canvas.toBuffer("image/png");
+	// Optional debug dump
+	dumpDebugPNG(buf, "trmnl_flightmap_debug.png");
+	return buf;
 }
 
 // Optional helper: dump debug PNG when env var set

@@ -129,30 +129,6 @@ export function shiftLonToRef(lon: number, refLon: number): number {
 	return v;
 }
 
-// Typed recursive coordinate shifter using a GeoJSON Position nesting union.
-type GeoCoords = Position | Position[] | Position[][] | Position[][][];
-
-function shiftCoordsRecursive(coords: GeoCoords, refLon: number): GeoCoords {
-	if (!Array.isArray(coords)) return coords;
-
-	// Position -> [lon, lat, ...]
-	if (
-		coords.length >= 2 &&
-		typeof coords[0] === "number" &&
-		typeof coords[1] === "number"
-	) {
-		const lon = coords[0] as number;
-		const lat = coords[1] as number;
-		const rest = (coords as Position).slice(2);
-		return [shiftLonToRef(lon, refLon), lat, ...rest] as Position;
-	}
-
-	// Otherwise recurse into nested arrays (rings, polygons, multipolygons)
-	return (coords as unknown[]).map((c) =>
-		shiftCoordsRecursive(c as GeoCoords, refLon),
-	) as GeoCoords;
-}
-
 // Return a new FeatureCollection with all coordinates longitude-shifted to be continuous near refLon.
 export function shiftFeatureCollectionToRef(
 	fc: FeatureCollection,
@@ -286,7 +262,6 @@ export function drawMapBackground(
 	ctx.fillRect(0, 0, width, height);
 
 	if (landFC && landFC.features && landFC.features.length > 0) {
-		ctx.beginPath();
 		for (const feat of landFC.features) {
 			const geom = (feat as any).geometry;
 			if (!geom) continue;
@@ -296,23 +271,54 @@ export function drawMapBackground(
 
 			const polygons = type === "Polygon" ? [coords] : coords;
 			for (const poly of polygons) {
+				// Draw each polygon (with possible inner rings) as its own path
+				ctx.beginPath();
 				for (let r = 0; r < poly.length; r++) {
 					const ring = poly[r];
 					if (!ring || ring.length === 0) continue;
+					let prevX: number | null = null;
+					let firstX: number | null = null;
+					let firstY: number | null = null;
 					for (let i = 0; i < ring.length; i++) {
 						const [lon, lat] = ring[i];
 						const [x, y] = proj.project(lat, lon);
-						if (i === 0) ctx.moveTo(x, y);
-						else ctx.lineTo(x, y);
+						if (i === 0) {
+							ctx.moveTo(x, y);
+							firstX = x;
+							firstY = y;
+						} else {
+							// If there's a very large jump in projected X between
+							// adjacent vertices, don't draw a long connector across
+							// the map — start a new subpath instead. This avoids
+							// connecting across dateline/unwrapped seams which can
+							// invert fills.
+							if (prevX !== null && Math.abs(x - prevX) > Math.max(1, width * 0.45)) {
+								ctx.moveTo(x, y);
+							} else {
+								ctx.lineTo(x, y);
+							}
+						}
+						prevX = x;
+					}
+					// ensure ring is closed if start and end are adjacent (no huge gap)
+					if (ring.length > 0 && firstX !== null && prevX !== null && Math.abs(firstX - prevX) <= Math.max(1, width * 0.45)) {
+						ctx.lineTo(firstX, firstY as number);
 					}
 				}
+				ctx.fillStyle = "#ffffff";
+				ctx.strokeStyle = "#cfd6db";
+				ctx.lineWidth = Math.max(1, Math.min(2, (width + height) / 800));
+				// use even-odd rule to avoid winding-order issues
+				try {
+					// Some canvas implementations accept a fill rule parameter
+					// ctx.fill('evenodd') is supported in node-canvas/@napi-rs/canvas
+					(ctx as any).fill && (ctx as any).fill("evenodd");
+				} catch (e) {
+					ctx.fill();
+				}
+				ctx.stroke();
 			}
 		}
-		ctx.fillStyle = "#ffffff";
-		ctx.strokeStyle = "#cfd6db";
-		ctx.lineWidth = Math.max(1, Math.min(2, (width + height) / 800));
-		ctx.fill();
-		ctx.stroke();
 	}
 
 	ctx.restore();

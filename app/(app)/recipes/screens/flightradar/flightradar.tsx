@@ -20,12 +20,24 @@ import getData from "./getData";
 // 	// 	data = await getData({ locParam });
 // 	// }
 
-export default async function FlightRadar({
-	locParam = "loc:51.47,-0.45,8",
-}: {
-	locParam?: string;
-}) {
-	const data: DisplayData = await getData({ locParam });
+export default async function FlightRadar(
+	props?: Partial<DisplayData> & { locParam?: string },
+) {
+	// If the renderer passed full DisplayData as `props`, prefer it.
+	// Otherwise derive `locParam` and fetch via `getData`.
+	let data: DisplayData;
+	if (props && (props as DisplayData).tracking) {
+		data = props as DisplayData;
+		if (process.env.FLIGHTMAP_DEBUG === "1") {
+			console.log("FlightRadar: rendering with provided DisplayData props");
+		}
+	} else {
+		const locParam = props?.locParam ?? "loc:51.47,-0.45,8";
+		if (process.env.FLIGHTMAP_DEBUG === "1") {
+			console.log("FlightRadar: rendering with locParam:", locParam);
+		}
+		data = await getData({ locParam });
+	}
 
 	let flightLoc: FlightLocation = {
 		loc: data.center_loc,
@@ -40,12 +52,16 @@ export default async function FlightRadar({
 	// render map image server-side
 	let mapImg: string | null = null;
 	try {
+		const bbox = data.bound;
+		const avgLon = (bbox.min.long + bbox.max.long) / 2;
+		// normalize avgLon into [-180,180)
+		const refLon = ((((avgLon + 180) % 360) + 360) % 360) - 180;
 		const buf = await renderFrameForFlight(data.land_geo as any, flightLoc, {
 			width: 500,
 			height: 300,
 			// pass the precomputed bounding box from getData so zoom is respected
 			boundingBox: data.bound,
-			refLon: data.center_loc.long,
+			refLon,
 		});
 		mapImg = `data:image/png;base64,${buf.toString("base64")}`;
 	} catch (e) {
@@ -116,6 +132,12 @@ export default async function FlightRadar({
 						{ap.code} — {ap.name}
 					</div>
 					<div style={smallMuted}>Combined departures/arrivals placeholder</div>
+					<div style={smallMuted}>Zoom: {String(data.zoom ?? "(n/a)")}</div>
+					<div style={smallMuted}>
+						Bounds: {data.bound.min.lat.toFixed(4)},
+						{data.bound.min.long.toFixed(4)} — {data.bound.max.lat.toFixed(4)},
+						{data.bound.max.long.toFixed(4)}
+					</div>
 				</div>
 			);
 		}
