@@ -90,6 +90,8 @@ export async function renderFrameForFlight(
 		// optional reference longitude to unwrap geometries
 		refLon?: number;
 		zoom?: number;
+		// whether to draw the aircraft glyph at center
+		showAircraft?: boolean;
 	},
 ) {
 	const DPR = opts.dpr ?? 1;
@@ -374,25 +376,29 @@ export async function renderFrameForFlight(
 		}
 	}
 
-	// Draw aircraft glyph at center (upright)
-	ctx.save();
-	ctx.fillStyle = "#000";
-	ctx.translate(cx, cy);
-	const planeSize = Math.max(10, Math.min(24, (width + height) / 60));
-	ctx.beginPath();
-	ctx.moveTo(0, -planeSize);
-	ctx.lineTo(planeSize / 2, planeSize / 2);
-	ctx.lineTo(-planeSize / 2, planeSize / 2);
-	ctx.closePath();
-	ctx.fill();
-	ctx.restore();
+	// Draw aircraft glyph at center (upright) when requested
+	// Default to false to avoid plotting a plane for static locations/airports
+	const showAircraft = opts.showAircraft ?? false;
+	if (showAircraft) {
+		ctx.save();
+		ctx.fillStyle = "#000";
+		ctx.translate(cx, cy);
+		const planeSize = Math.max(10, Math.min(24, (width + height) / 60));
+		ctx.beginPath();
+		ctx.moveTo(0, -planeSize);
+		ctx.lineTo(planeSize / 2, planeSize / 2);
+		ctx.lineTo(-planeSize / 2, planeSize / 2);
+		ctx.closePath();
+		ctx.fill();
+		ctx.restore();
 
-	// Label horizontally
-	ctx.fillStyle = "#000";
-	ctx.font = "12px sans-serif";
-	ctx.textBaseline = "middle";
-	ctx.textAlign = "left";
-	ctx.fillText((flight as any).ident || "", cx + planeSize + 6, cy);
+		// Label horizontally
+		ctx.fillStyle = "#000";
+		ctx.font = "12px sans-serif";
+		ctx.textBaseline = "middle";
+		ctx.textAlign = "left";
+		ctx.fillText((flight as any).ident || "", cx + planeSize + 6, cy);
+	}
 
 	const buf = canvas.toBuffer("image/png");
 	// Optional debug dump

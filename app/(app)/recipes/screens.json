@@ -205,7 +205,7 @@
 				"type": "string",
 				"label": "Location Parameter",
 				"description": "Location Parameter: (loc:lat,long,zoom, airport:code,zoom, flight:callsign,hex)",
-				"default": "airport:LHR,0"
+				"default": "airport:LHR,6"
 			}
 		},
 		"tags": ["flight", "api", "live-data", "configurable"],

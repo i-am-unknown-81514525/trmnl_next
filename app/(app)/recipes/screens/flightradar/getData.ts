@@ -542,7 +542,7 @@ export default async function getData({
 			parameter: {
 				display_icon: true,
 				display_label: true,
-				require_zoom: 9,
+				require_zoom: 5,
 			},
 		};
 	});
