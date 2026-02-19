@@ -69,7 +69,7 @@ export async function renderFrameForFlight(topo: TopoOrGeo, flight: FlightLocati
   const forwardRatio = opts.forwardRatio ?? 2.0;
   const boxes = bboxForFlightDegrees(flight, forwardRatio);
   const refLon = referenceLonForFlight(flight);
-  const combined = combineBoxesToContinuous(boxes, refLon);
+  const combined = boxes.unified;
 
   const cx = width / 2;
   const cy = height / 2;
@@ -88,9 +88,9 @@ export async function renderFrameForFlight(topo: TopoOrGeo, flight: FlightLocati
   const proj = createProjector(combined, width, height, refLon);
 
   // Query overlays and dedupe
-  const airports = mergeBoxQueries(boxes, (b) => findAirportInBox(b.min.lat, b.min.long, b.max.lat, b.max.long), (a: any) => String(a.id));
-  const navaids = mergeBoxQueries(boxes, (b) => findNavaidsInBox(b.min.lat, b.min.long, b.max.lat, b.max.long), (n: any) => String(n.id));
-  const runways = mergeBoxQueries(boxes, (b) => findRunwaysInBox(b.min.lat, b.min.long, b.max.lat, b.max.long), (r: any) => String(r.id));
+  const airports = mergeBoxQueries(boxes.split, (b) => findAirportInBox(b.min.lat, b.min.long, b.max.lat, b.max.long), (a: any) => String(a.id));
+  const navaids = mergeBoxQueries(boxes.split, (b) => findNavaidsInBox(b.min.lat, b.min.long, b.max.lat, b.max.long), (n: any) => String(n.id));
+  const runways = mergeBoxQueries(boxes.split, (b) => findRunwaysInBox(b.min.lat, b.min.long, b.max.lat, b.max.long), (r: any) => String(r.id));
 
   // Draw overlays in rotated frame
   ctx.save();

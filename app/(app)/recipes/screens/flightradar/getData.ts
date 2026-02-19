@@ -9,7 +9,7 @@ import {
     Location,
     Trail,
     DepartureKind,
-    BoundingBox, EnvironmentOverlays, DisplayData, TrackingKind
+    BoundingBox, EnvironmentOverlays, DisplayData, TrackingKind, ForeignFlightDataDisplay
 } from "./schema";
 import {Trace} from "./schema_external/adsbexchange_trace";
 import {FR24PlaybackResult} from "./schema_external/fr24_flightplayback";
@@ -345,6 +345,8 @@ export function getVisualBearing(tracking: TrackingKind): number {
 export default async function getData({locParam}: {locParam: string}): Promise<DisplayData> {
     let kind: TrackingKind | null = null;
     let zoom: number | null = null;
+    let location: Location | null = null;
+    const fwd = 1.3;
     if (locParam.startsWith("airport:")) {
         const params = locParam.substring(8).split(",");
         const airport = await getFr24AirportLocation(params[0]);
@@ -355,9 +357,10 @@ export default async function getData({locParam}: {locParam: string}): Promise<D
             zoom = Number(params[1]);
             if (zoom < 0) zoom = 0;
             if (zoom > 15) zoom = 15;
-            if (isNaN(zoom)) zoom = 10;
+            if (isNaN(zoom)) zoom = 8;
         }
         kind = {kind: "static_airport", airport: airport};
+        location = airport.loc;
     } else if (locParam.startsWith("loc:")) {
         const params = locParam.substring(4).split(",");
         const lat = Number(params[0]);
@@ -372,10 +375,11 @@ export default async function getData({locParam}: {locParam: string}): Promise<D
             zoom = Number(params[2]);
             if (zoom < 0) zoom = 0;
             if (zoom > 15) zoom = 15;
-            if (isNaN(zoom)) zoom = 10;
+            if (isNaN(zoom)) zoom = 8;
         }
 
         kind = {kind: "static_location", location: {lat: lat, long: long}};
+        location = {lat: lat, long: long};
     } else if (locParam.startsWith("flight:")) {
         const params: string[] = locParam.substring(7).split(",");
         const callsign = params[0];
@@ -385,7 +389,41 @@ export default async function getData({locParam}: {locParam: string}): Promise<D
             throw new Error("Flight not found");
         }
         kind = {kind: "flight", flight: data};
+        location = data.curr.loc.loc;
+    } else {
+        throw new Error("Unknown location parameter");
     }
+    const bounding_box = getViewBoundingBox(kind!, location!, fwd, zoom ?? undefined);
 
-    throw new Error("Not implemented");
+    let planes = [];
+    for (const box of bounding_box.split) {
+        planes.push(...(await getFlightInZone(box)));
+    }
+    planes = planes.filter((item, index, self) =>
+        index === self.findIndex((t) => t.id.hex === item.id.hex) && (kind?.kind !== "flight" || item.id.hex !== kind.flight.id.hex)
+    );
+    const plane_display: ForeignFlightDataDisplay[] = planes.map(x=>{
+        return {
+            flight: x,
+            parameter: {
+                display_icon: true,
+                display_label: true,
+                require_zoom: 9
+            }
+        }
+    })
+    const overlays = getOverlayInSplitZone(bounding_box.split);
+    const visual_bearing = getVisualBearing(kind);
+
+    return {
+        tracking: kind,
+        center_loc: location,
+        nearby: plane_display,
+        overlays: overlays,
+        visual_bearing,
+        bound: bounding_box.unified,
+        forward_ratio: fwd,
+        // @ts-ignore
+        land_geo: null // todo
+    }
 }
