@@ -204,7 +204,7 @@
 			"locParam": {
 				"type": "string",
 				"label": "Location Parameter",
-				"description": "Location Parameter: (loc:lat,long, airport:code, flight:callsign)",
+				"description": "Location Parameter: (loc:lat,long,zoom, airport:code,zoom, flight:callsign)",
 				"default": "airport:LHR"
 			}
 		},

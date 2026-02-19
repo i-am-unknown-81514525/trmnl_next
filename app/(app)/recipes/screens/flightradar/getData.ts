@@ -271,6 +271,6 @@ async function getFlightData(id: FlightID) : Promise<FlightData | null> {
     }
 }
 
-export default async function getData(): Promise<DisplayData> {
+export default async function getData({locParam}: {locParam: string}): Promise<DisplayData> {
     throw new Error("Not implemented");
 }
