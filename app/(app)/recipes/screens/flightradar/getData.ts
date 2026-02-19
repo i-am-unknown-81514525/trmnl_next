@@ -445,7 +445,7 @@ export default async function getData({
 	locParam: string;
 }): Promise<DisplayData> {
 	let kind: TrackingKind | null = null;
-	let zoom: number = 8;
+	let zoom: number = 5;
 	let location: Location | null = null;
 	const fwd = 1.3;
 	if (locParam.startsWith("airport:")) {
@@ -457,8 +457,8 @@ export default async function getData({
 		if (params[1]) {
 			zoom = Number(params[1]);
 			if (zoom < 0) zoom = 0;
-			if (zoom > 15) zoom = 15;
-			if (isNaN(zoom)) zoom = 8;
+			if (zoom > 10) zoom = 10;
+			if (isNaN(zoom)) zoom = 5;
 		}
 		kind = { kind: "static_airport", airport: airport };
 		location = airport.loc;
@@ -475,8 +475,8 @@ export default async function getData({
 		if (params[2]) {
 			zoom = Number(params[2]);
 			if (zoom < 0) zoom = 0;
-			if (zoom > 15) zoom = 15;
-			if (isNaN(zoom)) zoom = 8;
+			if (zoom > 10) zoom = 10;
+			if (isNaN(zoom)) zoom = 5;
 		}
 
 		kind = { kind: "static_location", location: { lat: lat, long: long } };

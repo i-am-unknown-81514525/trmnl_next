@@ -1,7 +1,24 @@
 import React from "react";
-import getData from "./getData";
+import { PreSatori } from "@/utils/pre-satori";
 import type { DisplayData, FlightLocation } from "./schema";
 import { renderFrameForFlight } from "./render";
+import getData from "./getData";
+
+// 	width = 800,
+// 	height = 480,
+// 	...data
+// }: DisplayData & { width?: number; height?: number }) {
+// 	// const locParam = props.locParam ?? "loc:51.47,-0.45,8";
+// 	//
+// 	// // Prefer data passed in via props (render pipeline). Only fall back to
+// 	// // explicit fetch when no data was provided (standalone invocation).
+// 	// let data: DisplayData;
+// 	// if (props && (props as DisplayData).tracking) {
+// 	// 	data = props as DisplayData;
+// 	// } else {
+// 	// 	const { default: getData } = await import("./getData");
+// 	// 	data = await getData({ locParam });
+// 	// }
 
 export default async function FlightRadar({
 	locParam = "loc:51.47,-0.45,8",
@@ -24,8 +41,11 @@ export default async function FlightRadar({
 	let mapImg: string | null = null;
 	try {
 		const buf = await renderFrameForFlight(data.land_geo as any, flightLoc, {
-			width: 360,
-			height: 200,
+			width: 500,
+			height: 300,
+			// pass the precomputed bounding box from getData so zoom is respected
+			boundingBox: data.bound,
+			refLon: data.center_loc.long,
 		});
 		mapImg = `data:image/png;base64,${buf.toString("base64")}`;
 	} catch (e) {
@@ -37,77 +57,218 @@ export default async function FlightRadar({
 
 	// details depending on type
 	function Details() {
+		const containerStyle: React.CSSProperties = {
+			width: "100%",
+			height: "100%",
+			display: "flex",
+			flexDirection: "column",
+			justifyContent: "center",
+			alignItems: "flex-start",
+			boxSizing: "border-box",
+			color: "#000",
+		};
+
+		const titleStyle: React.CSSProperties = {
+			fontSize: 16,
+			fontWeight: 700,
+			margin: 0,
+			marginBottom: 6,
+		};
+
+		const monoLarge: React.CSSProperties = {
+			fontFamily: "monospace",
+			fontSize: 28,
+			lineHeight: 1.05,
+			margin: 0,
+		};
+
+		const smallMuted: React.CSSProperties = {
+			fontSize: 12,
+			color: "#444",
+			marginTop: 6,
+		};
+
 		if (data.tracking.kind === "flight") {
 			const md = data.tracking.flight.metadata;
 			return (
-				<div>
-					<h3 className="text-lg font-bold">Flight Details</h3>
-					<div>Callsign: {data.tracking.flight.id.callsign}</div>
-					<div>Hex: {data.tracking.flight.id.hex}</div>
-					<div>Est: {md?.time_data ? JSON.stringify(md.time_data) : "N/A"}</div>
-					<div>
+				<div style={containerStyle}>
+					<h3 style={titleStyle}>Flight Details</h3>
+					<div style={{ fontSize: 14 }}>
+						Callsign: {data.tracking.flight.id.callsign}
+					</div>
+					<div style={{ fontSize: 14 }}>Hex: {data.tracking.flight.id.hex}</div>
+					<div style={smallMuted}>
+						Est: {md?.time_data ? JSON.stringify(md.time_data) : "N/A"}
+					</div>
+					<div style={smallMuted}>
 						Src: {md?.src?.code ?? "N/A"} Dest: {md?.dest?.code ?? "N/A"}
 					</div>
 				</div>
 			);
 		}
+
 		if (data.tracking.kind === "static_airport") {
 			const ap = data.tracking.airport;
 			return (
-				<div>
-					<h3 className="text-lg font-bold">Airport</h3>
-					<div>
+				<div style={containerStyle}>
+					<h3 style={titleStyle}>Airport</h3>
+					<div style={{ fontSize: 14 }}>
 						{ap.code} — {ap.name}
 					</div>
-					<div>Combined departures/arrivals placeholder</div>
+					<div style={smallMuted}>Combined departures/arrivals placeholder</div>
 				</div>
 			);
 		}
 
 		return (
-			<div className="flex flex-col items-center justify-center h-full">
-				<h3 className="text-4xl font-mono">{new Date().toUTCString()}</h3>
-				<div className="text-sm mt-2">UTC Time (location)</div>
+			<div
+				style={{ ...containerStyle, alignItems: "center", textAlign: "center" }}
+			>
+				<h3 style={monoLarge}>{new Date().toUTCString()}</h3>
+				<div style={smallMuted}>UTC Time (location)</div>
 			</div>
 		);
 	}
 
 	return (
-		<div className="flex w-full h-full p-4 gap-4 bg-white">
-			<div className="w-2/3 pr-2">
-				<h2 className="text-2xl font-semibold mb-2">Nearby Flights</h2>
-				<ul className="space-y-2 overflow-auto max-h-130">
-					{nearbyItems.map((n, i) => (
-						<li key={i} className="p-2 border rounded hover:bg-gray-50">
-							<div className="font-medium">
-								{n.flight.id.callsign} ({n.flight.id.hex})
+		<PreSatori width={800} height={480}>
+			<div
+				style={{
+					width: 800,
+					height: 480,
+					boxSizing: "border-box",
+					display: "flex",
+					alignItems: "stretch",
+					justifyContent: "center",
+					padding: 8,
+				}}
+			>
+				<div
+					style={{
+						width: 800,
+						height: 480,
+						border: "12px solid #000",
+						borderRadius: 10,
+						overflow: "hidden",
+						background: "#fff",
+						boxSizing: "border-box",
+					}}
+				>
+					<div
+						style={{
+							width: "100%",
+							height: "100%",
+							display: "flex",
+							padding: 16,
+							gap: 16,
+							backgroundColor: "#ffffff",
+							color: "#000000",
+						}}
+					>
+						{/* Left column */}
+						<div
+							style={{
+								width: 500,
+								display: "flex",
+								flexDirection: "column",
+								gap: 8,
+							}}
+						>
+							<div
+								style={{
+									width: 500,
+									height: 300,
+									display: "flex",
+									alignItems: "center",
+									justifyContent: "center",
+									background: "#f3f4f6",
+									border: "1px solid #e5e7eb",
+									borderRadius: 6,
+									overflow: "hidden",
+								}}
+							>
+								{mapImg ? (
+									<picture>
+										<source srcSet={mapImg} type="image/png" />
+										<img
+											src={mapImg}
+											alt="map"
+											width={500}
+											height={300}
+											style={{
+												width: "100%",
+												height: "100%",
+												maxWidth: "500px",
+												objectFit: "contain",
+												filter: "grayscale(100%) contrast(0.95) brightness(1)",
+											}}
+										/>
+									</picture>
+								) : (
+									<div style={{ margin: "auto" }}>No map available</div>
+								)}
 							</div>
-							<div className="text-sm text-gray-600">
-								{n.flight.loc.loc.lat.toFixed(3)},{" "}
-								{n.flight.loc.loc.long.toFixed(3)}
+							<div
+								style={{
+									flex: 1,
+									border: "1px solid #e5e7eb",
+									borderRadius: 6,
+									padding: 12,
+									boxSizing: "border-box",
+									height: 150,
+								}}
+							>
+								<Details />
 							</div>
-						</li>
-					))}
-				</ul>
-			</div>
+						</div>
 
-			<div className="w-1/3 flex flex-col gap-2">
-				<div className="h-48 bg-gray-100 border rounded overflow-hidden flex items-center justify-center">
-					{mapImg ? (
-						<img
-							src={mapImg}
-							alt="map"
-							className="w-full h-full object-cover"
-						/>
-					) : (
-						<div>No map available</div>
-					)}
-				</div>
-				<div className="flex-1 border rounded p-3">
-					<Details />
+						{/* Right column */}
+						<div
+							style={{
+								width: 280,
+								paddingLeft: 8,
+								boxSizing: "border-box",
+								height: 448,
+								borderRight: "1px solid #000",
+							}}
+						>
+							<ul
+								style={{
+									display: "flex",
+									flexDirection: "column",
+									gap: 6,
+									height: "100%",
+									overflow: "hidden",
+									padding: 0,
+									margin: 0,
+									listStyle: "none",
+								}}
+							>
+								{nearbyItems.map((n, i) => (
+									<li
+										key={i}
+										style={{
+											padding: "8px 10px",
+											border: "1px solid #000",
+											borderRadius: 6,
+											background: "#fff",
+										}}
+									>
+										<div style={{ fontSize: 16, fontWeight: 600 }}>
+											{n.flight.id.callsign} ({n.flight.id.hex})
+										</div>
+										<div style={{ fontSize: 14, color: "#666", marginTop: 4 }}>
+											{n.flight.loc.loc.lat.toFixed(4)},{" "}
+											{n.flight.loc.loc.long.toFixed(4)}
+										</div>
+									</li>
+								))}
+							</ul>
+						</div>
+					</div>
 				</div>
 			</div>
-		</div>
+		</PreSatori>
 	);
 }
 // https://api.flightradar24.com/common/v1/flight-playback.json?flightId=3e1f9a70&timestamp=1769798100

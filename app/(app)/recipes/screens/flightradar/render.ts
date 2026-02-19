@@ -1,4 +1,5 @@
 import { createCanvas } from "@napi-rs/canvas";
+import fs from "fs";
 import {
 	bboxForFlightDegrees,
 	referenceLonForFlight,
@@ -84,6 +85,10 @@ export async function renderFrameForFlight(
 		height: number;
 		dpr?: number;
 		forwardRatio?: number;
+		// optional precomputed bounding box (used for static airport/loc zoom)
+		boundingBox?: BoundingBox;
+		// optional reference longitude to unwrap geometries
+		refLon?: number;
 	},
 ) {
 	const DPR = opts.dpr ?? 1;
@@ -97,9 +102,36 @@ export async function renderFrameForFlight(
 	const ctx = canvas.getContext("2d")!;
 	ctx.scale(DPR, DPR);
 
+	// Debug: log basic render params when requested
+	if (process.env.FLIGHTMAP_DEBUG === "1") {
+		console.log("renderFrameForFlight", {
+			DPR,
+			width,
+			height,
+			refLon: referenceLonForFlight(flight),
+		});
+		if ((topo as any)?.type === "FeatureCollection") {
+			console.log("land features:", (topo as any).features?.length ?? 0);
+		} else if ((topo as any)?.type === "Topology") {
+			console.log(
+				"topology objects:",
+				Object.keys((topo as any).objects ?? {}).join(","),
+			);
+		}
+	}
+
 	const forwardRatio = opts.forwardRatio ?? 2.0;
-	const boxes = bboxForFlightDegrees(flight, forwardRatio);
-	const refLon = referenceLonForFlight(flight);
+
+	// If caller provided an explicit bounding box (e.g. static airport + zoom), use it.
+	let boxes;
+	let refLon: number;
+	if (opts.boundingBox) {
+		boxes = { unified: opts.boundingBox, split: [opts.boundingBox] } as any;
+		refLon = opts.refLon ?? opts.boundingBox.min.long;
+	} else {
+		boxes = bboxForFlightDegrees(flight, forwardRatio);
+		refLon = referenceLonForFlight(flight);
+	}
 	const combined = boxes.unified;
 
 	const cx = width / 2;
@@ -187,8 +219,22 @@ export async function renderFrameForFlight(
 	// Label horizontally
 	ctx.fillStyle = "#000";
 	ctx.font = "12px sans-serif";
-	ctx.textBaseline = "bottom";
-	ctx.fillText((flight as any).ident || "", cx + planeSize + 6, cy - 2);
+	ctx.textBaseline = "middle";
+	ctx.textAlign = "left";
+	ctx.fillText((flight as any).ident || "", cx + planeSize + 6, cy);
 
 	return canvas.toBuffer("image/png");
+}
+
+// Optional helper: dump debug PNG when env var set
+export function dumpDebugPNG(buf: Buffer, name = "trmnl_flightmap_debug.png") {
+	try {
+		if (process.env.FLIGHTMAP_DEBUG_DUMP === "1") {
+			const out = `/tmp/${name}`;
+			fs.writeFileSync(out, buf);
+			console.log(`wrote debug png to ${out}`);
+		}
+	} catch (e) {
+		console.warn("failed to dump debug png", e);
+	}
 }
