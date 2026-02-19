@@ -21,22 +21,28 @@ import {FullTimeData} from "./schema_external/fr24_flight_list";
 import {findAirportInBox, findNavaidsInBox, findRunwaysInBox, loadAllSync} from "./csv_handler";
 import type {TopoOrGeo} from "./map";
 import {bboxForFlightDegrees, mergeBoxQueries, referenceLonForFlight, shiftFeatureCollectionToRef} from "./map";
+import { feature as topoFeature } from 'topojson-client';
 
 loadAllSync();
 
-let cachedLandTopo: TopoOrGeo | null = null;
-async function loadLandTopoOnce(): Promise<TopoOrGeo> {
-    if (cachedLandTopo) return cachedLandTopo;
+const cachedLandTopo: Record<'10m'|'50m'|'110m', TopoOrGeo | null> = {
+    '10m': null,
+    '50m': null,
+    '110m': null
+};
 
+async function loadLandTopoOnce(res: '10m'|'50m'|'110m'): Promise<TopoOrGeo> {
+    if (cachedLandTopo[res]) return cachedLandTopo[res] as TopoOrGeo;
     try {
-        const mod = require('world-atlas/land-110m.json');
+        // @ts-ignore
+        const mod = require(`world-atlas/land-${res}.json`);
         const data = (mod as any).default ?? mod;
-        cachedLandTopo = data as TopoOrGeo;
-        return cachedLandTopo;
+        cachedLandTopo[res] = data as TopoOrGeo;
+        return cachedLandTopo[res] as TopoOrGeo;
     } catch (e) {
-        // return empty FeatureCollection fallback to keep renderer simple
-        cachedLandTopo = {type: 'FeatureCollection', features: []};
-        return cachedLandTopo;
+        const empty: any = { type: 'FeatureCollection', features: [] };
+        cachedLandTopo[res] = empty;
+        return cachedLandTopo[res] as TopoOrGeo;
     }
 }
 
@@ -365,7 +371,7 @@ export function getVisualBearing(tracking: TrackingKind): number {
 
 export default async function getData({locParam}: {locParam: string}): Promise<DisplayData> {
     let kind: TrackingKind | null = null;
-    let zoom: number | null = null;
+    let zoom: number = 8;
     let location: Location | null = null;
     const fwd = 1.3;
     if (locParam.startsWith("airport:")) {
@@ -437,10 +443,28 @@ export default async function getData({locParam}: {locParam: string}): Promise<D
     const visual_bearing = getVisualBearing(kind);
 
     const refLon = kind.kind === 'flight' ? referenceLonForFlight(kind.flight.curr.loc) : (location?.long ?? 0);
-    const topo = await loadLandTopoOnce();
-    let land_geo: TopoOrGeo = topo;
+    // choose resolution: default 110m, medium 50m, high 10m
+    let res: '10m'|'50m'|'110m' = '110m';
+    if (zoom >= 7) res = '10m';
+    else if (zoom > 4 && zoom < 7) res = '50m';
+
+    let topo = await loadLandTopoOnce(res);
+
+    let land_geo: TopoOrGeo = { type: 'FeatureCollection', features: [] } as any;
     if (topo) {
-        if ((topo as any).type === 'FeatureCollection') {
+        if ((topo as any).type === 'Topology') {
+            const topoObj = topo as any;
+            const key = topoObj.objects && topoObj.objects.land ? 'land' : Object.keys(topoObj.objects)[0];
+            try {
+                const fc = topoFeature(topoObj, topoObj.objects[key]);
+                if (fc && (fc as any).type === 'FeatureCollection') {
+                    land_geo = shiftFeatureCollectionToRef(fc as any, refLon as number) as TopoOrGeo;
+                }
+            } catch (e) {
+                // fallback to empty
+                land_geo = { type: 'FeatureCollection', features: [] } as any;
+            }
+        } else if ((topo as any).type === 'FeatureCollection') {
             land_geo = shiftFeatureCollectionToRef(topo as any, refLon as number) as TopoOrGeo;
         }
     }
