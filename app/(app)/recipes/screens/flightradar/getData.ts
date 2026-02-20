@@ -70,7 +70,11 @@ async function getFlightInZone(
 	const bottom_left: Location = bound.min;
 	const top_right: Location = bound.max;
 	const response = await fetch(
-		`https://globe.adsbexchange.com/re-api/?binCraft&zstd&box=${bottom_left.lat},${top_right.lat},${bottom_left.long},${top_right.long}`,
+		`https://globe.adsbexchange.com/re-api/?binCraft&zstd&box=${
+			bottom_left.lat - 3 < -180 ? -180 : bottom_left.lat - 3
+		},${top_right.lat + 3 > 180 ? 180 : top_right.lat + 3},${
+			bottom_left.long - 3 < -90 ? -90 : bottom_left.long - 3
+		},${top_right.long + 3 > 90 ? 90 : top_right.long + 3}`,
 		{
 			headers: {
 				Referer: "https://globe.adsbexchange.com/",
@@ -382,6 +386,59 @@ function zoomToDegreeRadius(zoom = 10): number {
 	return base * Math.pow(2, 10 - z);
 }
 
+/** Compute a sensible zoom level for a tracked flight using speed, altitude
+ * and recent climb/descent rate. Higher zoom -> more zoomed-in (smaller
+ * geographic radius). Returns an integer zoom clamped to [2, 10].
+ */
+function computeZoomForFlight(data: FlightData): number {
+	const DEFAULT = 6;
+	try {
+		const curr = data.curr.loc;
+		const speed = curr.speed ?? 0; // kts
+		const alt = curr.alt ?? 0; // feet
+
+		let z = DEFAULT;
+
+		// On ground / taxi -> close view
+		if (speed < 80) {
+			z = Math.max(z, 9);
+		}
+
+		// Low altitude -> closer
+		if (alt < 5000) {
+			z = Math.max(z, 9);
+		}
+
+		// Typical cruise -> medium zoom
+		if (speed >= 250 && alt >= 20000) {
+			z = Math.min(z, DEFAULT);
+		}
+
+		// Estimate climb/descent rate (feet per minute) from recent trail points
+		let fpm = 0;
+		const trails = data.trails || [];
+		if (trails.length >= 2) {
+			const last = trails[trails.length - 1];
+			let i = trails.length - 2;
+			while (i >= 0 && (trails[i].loc.alt === null || trails[i].loc.alt === undefined)) i--;
+			if (i >= 0) {
+				const prev = trails[i];
+				const dt = (last.timestamp - prev.timestamp) || 1;
+				const dalt = (last.loc.alt ?? alt) - (prev.loc.alt ?? alt);
+				fpm = (dalt / dt) * 60;
+			}
+		}
+
+		const absf = Math.abs(fpm);
+		if (absf > 2000) z = Math.max(z, 8);
+		else if (absf > 500) z = Math.max(z, 7);
+
+		return Math.min(10, Math.max(2, Math.round(z)));
+	} catch (e) {
+		return DEFAULT;
+	}
+}
+
 /** normalize longitude into [-180, 180) */
 function normalizeLon(lon: number): number {
 	return ((((lon + 180) % 360) + 360) % 360) - 180;
@@ -531,6 +588,9 @@ export default async function getData({
 		}
 		kind = { kind: "flight", flight: data };
 		location = data.curr.loc.loc;
+
+		// Compute zoom from flight speed/altitude/trail (ignore manual bbox)
+		zoom = computeZoomForFlight(data);
 	} else {
 		throw new Error("Unknown location parameter");
 	}
