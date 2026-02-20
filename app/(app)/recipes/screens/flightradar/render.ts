@@ -112,7 +112,10 @@ export async function renderFrameForFlight(
 	// references remain valid after switching to a square draw area.
 	const width = drawSize;
 	const height = drawSize;
-	const canvas = createCanvas(Math.round(drawSize * DPR), Math.round(drawSize * DPR));
+	const canvas = createCanvas(
+		Math.round(drawSize * DPR),
+		Math.round(drawSize * DPR),
+	);
 	const ctx = canvas.getContext("2d")!;
 	ctx.scale(DPR, DPR);
 
@@ -158,7 +161,7 @@ export async function renderFrameForFlight(
 		let lonSpan = combined.max.long - combined.min.long;
 		if (lonSpan < 0) lonSpan += 360;
 		const explicit = !!opts.boundingBox;
-		const padFactor = explicit ? 0.45 : 0.20; // fraction of span to pad on each side
+		const padFactor = explicit ? 0.45 : 0.2; // fraction of span to pad on each side
 		const minPadDeg = explicit ? 0.06 : 0.02; // degrees (~6.7km vs ~2.2km)
 
 		const padLat = Math.max(latSpan * padFactor, minPadDeg);
@@ -415,7 +418,11 @@ export async function renderFrameForFlight(
 				ctx.font = "10px sans-serif";
 				ctx.textBaseline = "top";
 				ctx.textAlign = "left";
-				ctx.fillText(ff.id.callsign || ff.id.hex || "", x + planeSize + 4, y - 6);
+				ctx.fillText(
+					ff.id.callsign || ff.id.hex || "",
+					x + planeSize + 4,
+					y - 6,
+				);
 			}
 		}
 	} catch (e) {

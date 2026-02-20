@@ -420,10 +420,14 @@ function computeZoomForFlight(data: FlightData): number {
 		if (trails.length >= 2) {
 			const last = trails[trails.length - 1];
 			let i = trails.length - 2;
-			while (i >= 0 && (trails[i].loc.alt === null || trails[i].loc.alt === undefined)) i--;
+			while (
+				i >= 0 &&
+				(trails[i].loc.alt === null || trails[i].loc.alt === undefined)
+			)
+				i--;
 			if (i >= 0) {
 				const prev = trails[i];
-				const dt = (last.timestamp - prev.timestamp) || 1;
+				const dt = last.timestamp - prev.timestamp || 1;
 				const dalt = (last.loc.alt ?? alt) - (prev.loc.alt ?? alt);
 				fpm = (dalt / dt) * 60;
 			}
@@ -475,8 +479,14 @@ export function getViewBoundingBox(
 			return {
 				unified: box,
 				split: [
-					{ min: { lat: minLat, long: minLon }, max: { lat: maxLat, long: 180 } },
-					{ min: { lat: minLat, long: -180 }, max: { lat: maxLat, long: maxLon } },
+					{
+						min: { lat: minLat, long: minLon },
+						max: { lat: maxLat, long: 180 },
+					},
+					{
+						min: { lat: minLat, long: -180 },
+						max: { lat: maxLat, long: maxLon },
+					},
 				],
 			};
 		}

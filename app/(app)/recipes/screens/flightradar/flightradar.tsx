@@ -27,9 +27,112 @@ export default async function FlightRadar(
 	// Otherwise derive `locParam` and fetch via `getData`.
 	let data: DisplayData;
 	if (props && (props as DisplayData).tracking) {
-		data = props as DisplayData;
+		// Pre-filter incoming DisplayData props to avoid sending huge
+		// objects (notably large topo feature collections) into this
+		// server component. We create a small trimmed copy and use that
+		// for rendering.
+		const raw = props as DisplayData;
+
+		const toRad = (d: number) => (d * Math.PI) / 180;
+		const haversine = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+			const R = 6371;
+			const dLat = toRad(lat2 - lat1);
+			const dLon = toRad(lon2 - lon1);
+			const a =
+				Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+				Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+					Math.sin(dLon / 2) * Math.sin(dLon / 2);
+			return 2 * R * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+		};
+
+		// nearby trimming: by max distance and count
+		const maxNearbyKm = Number(process.env.FLIGHTMAP_NEARBY_MAX_KM ?? 250);
+		const maxNearbyCount = Number(process.env.FLIGHTMAP_NEARBY_MAX_COUNT ?? 60);
+		let nearbyFiltered = (raw.nearby ?? []).slice();
+		if (raw.center_loc) {
+			nearbyFiltered = nearbyFiltered
+				.map((n) => ({
+					item: n,
+					d: haversine(
+						n.flight.loc.loc.lat,
+						n.flight.loc.loc.long,
+						raw.center_loc!.lat,
+						raw.center_loc!.long,
+					),
+				}))
+				.filter((x) => x.d <= maxNearbyKm)
+				.sort((a, b) => a.d - b.d)
+				.slice(0, maxNearbyCount)
+				.map((x) => x.item);
+		} else {
+			nearbyFiltered = nearbyFiltered.slice(0, maxNearbyCount);
+		}
+
+		// land_geo trimming: keep only features overlapping the view bbox
+		const bound = raw.bound;
+		const padDeg = 0.5;
+		const bbMinLat = bound.min.lat - padDeg;
+		const bbMaxLat = bound.max.lat + padDeg;
+		const bbMinLon = bound.min.long - padDeg;
+		const bbMaxLon = bound.max.long + padDeg;
+
+		function featureBBox(feature: any) {
+			let minLat = 90;
+			let maxLat = -90;
+			let minLon = 180;
+			let maxLon = -180;
+			function walk(coords: any) {
+				if (typeof coords[0] === "number" && typeof coords[1] === "number") {
+					const lon = coords[0];
+					const lat = coords[1];
+					if (lat < minLat) minLat = lat;
+					if (lat > maxLat) maxLat = lat;
+					if (lon < minLon) minLon = lon;
+					if (lon > maxLon) maxLon = lon;
+					return;
+				}
+				for (const c of coords) walk(c);
+			}
+			try {
+				const geom = feature.geometry || feature;
+				if (!geom || !geom.coordinates) return null;
+				walk(geom.coordinates);
+				return { minLat, maxLat, minLon, maxLon };
+			} catch (e) {
+				return null;
+			}
+		}
+
+		let landFiltered = raw.land_geo;
+		try {
+			if (raw.land_geo && (raw.land_geo as any).type === "FeatureCollection") {
+				const feats = (raw.land_geo as any).features || [];
+				const kept: any[] = [];
+				for (const f of feats) {
+					const fb = featureBBox(f);
+					if (!fb) continue;
+					if (
+						fb.maxLat >= bbMinLat &&
+						fb.minLat <= bbMaxLat &&
+						fb.maxLon >= bbMinLon &&
+						fb.minLon <= bbMaxLon
+					) {
+						kept.push(f);
+					}
+				}
+				landFiltered = { type: "FeatureCollection", features: kept } as any;
+			}
+		} catch (e) {
+			landFiltered = raw.land_geo;
+		}
+
+		data = {
+			...raw,
+			nearby: nearbyFiltered,
+			land_geo: landFiltered,
+		} as DisplayData;
 		if (process.env.FLIGHTMAP_DEBUG === "1") {
-			console.log("FlightRadar: rendering with provided DisplayData props");
+			console.log("FlightRadar: rendering with provided DisplayData props (filtered)");
 		}
 	} else {
 		const locParam = props?.locParam ?? "loc:51.47,-0.45,8";
@@ -86,8 +189,18 @@ export default async function FlightRadar(
 		if (!data.center_loc) return 0;
 		const aLoc = a.flight.loc.loc;
 		const bLoc = b.flight.loc.loc;
-		const aDist = haversineKm(aLoc.lat, aLoc.long, data.center_loc.lat, data.center_loc.long);
-		const bDist = haversineKm(bLoc.lat, bLoc.long, data.center_loc.lat, data.center_loc.long);
+		const aDist = haversineKm(
+			aLoc.lat,
+			aLoc.long,
+			data.center_loc.lat,
+			data.center_loc.long,
+		);
+		const bDist = haversineKm(
+			bLoc.lat,
+			bLoc.long,
+			data.center_loc.lat,
+			data.center_loc.long,
+		);
 		return aDist - bDist;
 	});
 
