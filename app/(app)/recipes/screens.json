@@ -205,7 +205,7 @@
 				"type": "string",
 				"label": "Location Parameter",
 				"description": "Location Parameter: (loc:lat,long,zoom, airport:code,zoom, flight:callsign,hex)",
-				"default": "airport:HKG,7"
+				"default": "flight:CPA526,780ab8"
 			}
 		},
 		"tags": ["flight", "api", "live-data", "configurable"],

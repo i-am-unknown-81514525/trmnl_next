@@ -102,13 +102,17 @@ export async function renderFrameForFlight(
 	},
 ) {
 	const DPR = opts.dpr ?? 1;
-	const width = opts.width;
-	const height = opts.height;
+	const inputWidth = opts.width;
+	const inputHeight = opts.height;
 
-	const canvas = createCanvas(
-		Math.round(width * DPR),
-		Math.round(height * DPR),
-	);
+	// Always render into a square drawing area to keep map aspect consistent.
+	const drawSize = Math.min(inputWidth, inputHeight);
+
+	// Use `width`/`height` aliases throughout the existing codebase so older
+	// references remain valid after switching to a square draw area.
+	const width = drawSize;
+	const height = drawSize;
+	const canvas = createCanvas(Math.round(drawSize * DPR), Math.round(drawSize * DPR));
 	const ctx = canvas.getContext("2d")!;
 	ctx.scale(DPR, DPR);
 
@@ -136,7 +140,7 @@ export async function renderFrameForFlight(
 	let boxes;
 	let refLon: number;
 	// optional zoom passed by caller to control overlay filtering
-	const zoom = opts.zoom as number | undefined;
+	const zoom = (opts.zoom as number | undefined) ?? 5; // default to 5 for flight render context
 	if (opts.boundingBox) {
 		boxes = { unified: opts.boundingBox, split: [opts.boundingBox] } as any;
 		refLon = opts.refLon ?? opts.boundingBox.min.long;
@@ -145,6 +149,27 @@ export async function renderFrameForFlight(
 		refLon = referenceLonForFlight(flight);
 	}
 	const combined = boxes.unified;
+
+	// Add some padding so the rendered frame isn't overly tight. Use a larger
+	// padding when the bbox was explicitly supplied, and a modest padding for
+	// computed flight envelopes.
+	{
+		const latSpan = Math.max(1e-6, combined.max.lat - combined.min.lat);
+		let lonSpan = combined.max.long - combined.min.long;
+		if (lonSpan < 0) lonSpan += 360;
+		const explicit = !!opts.boundingBox;
+		const padFactor = explicit ? 0.45 : 0.20; // fraction of span to pad on each side
+		const minPadDeg = explicit ? 0.06 : 0.02; // degrees (~6.7km vs ~2.2km)
+
+		const padLat = Math.max(latSpan * padFactor, minPadDeg);
+		const padLon = Math.max(lonSpan * padFactor, minPadDeg);
+
+		combined.min.lat = clampLat(combined.min.lat - padLat);
+		combined.max.lat = clampLat(combined.max.lat + padLat);
+
+		combined.min.long = normalizeLon(combined.min.long - padLon);
+		combined.max.long = normalizeLon(combined.max.long + padLon);
+	}
 
 	if (process.env.FLIGHTMAP_DEBUG === "1") {
 		console.log("renderFrameForFlight (used bounding):", {
@@ -165,8 +190,9 @@ export async function renderFrameForFlight(
 		});
 	}
 
-	const cx = width / 2;
-	const cy = height / 2;
+	// Center coordinates for the square drawing area
+	const cx = drawSize / 2;
+	const cy = drawSize / 2;
 	const rad = degToRad(flight.track || 0);
 
 	const doRotate = process.env.FLIGHTMAP_NO_ROTATE !== "1";
@@ -183,11 +209,11 @@ export async function renderFrameForFlight(
 		ctx.rotate(-rad);
 		ctx.translate(-cx, -cy);
 
-		// Draw background
-		drawMapBackground(ctx, topo, combined, width, height, refLon);
+		// Draw background into the square drawing area
+		drawMapBackground(ctx, topo, combined, drawSize, drawSize, refLon);
 
 		// Projector for overlays
-		const proj = createProjector(combined, width, height, refLon);
+		const proj = createProjector(combined, drawSize, drawSize, refLon);
 
 		// Query overlays and dedupe
 		let airports = mergeBoxQueries(
@@ -389,11 +415,7 @@ export async function renderFrameForFlight(
 				ctx.font = "10px sans-serif";
 				ctx.textBaseline = "top";
 				ctx.textAlign = "left";
-				ctx.fillText(
-					ff.id.callsign || ff.id.hex || "",
-					x + planeSize + 4,
-					y - 6,
-				);
+				ctx.fillText(ff.id.callsign || ff.id.hex || "", x + planeSize + 4, y - 6);
 			}
 		}
 	} catch (e) {
@@ -445,9 +467,13 @@ export async function renderFrameForFlight(
 		}
 	}
 	if (showAircraft) {
+		// Draw the aircraft glyph rotated to the flight's bearing so it points
+		// in the correct direction on the final image. Keep the identifying
+		// label horizontal by drawing it after restoring the rotation.
 		ctx.save();
 		ctx.fillStyle = "#000";
 		ctx.translate(cx, cy);
+		ctx.rotate(rad); // rotate so the glyph points along `flight.track` (use positive angle)
 		const planeSize = Math.max(10, Math.min(24, (width + height) / 60));
 		ctx.beginPath();
 		ctx.moveTo(0, -planeSize);
@@ -457,7 +483,7 @@ export async function renderFrameForFlight(
 		ctx.fill();
 		ctx.restore();
 
-		// Label horizontally
+		// Label horizontally (not rotated)
 		ctx.fillStyle = "#000";
 		ctx.font = "12px sans-serif";
 		ctx.textBaseline = "middle";

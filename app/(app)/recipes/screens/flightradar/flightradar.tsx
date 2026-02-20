@@ -63,6 +63,9 @@ export default async function FlightRadar(
 			boundingBox: data.bound,
 			refLon,
 			zoom: data.zoom,
+			// show the central aircraft glyph when we're tracking a flight so the
+			// map isn't empty even if no topo/land geometry is available.
+			showAircraft: data.tracking.kind === "flight",
 			nearby: data.nearby,
 		});
 		mapImg = `data:image/png;base64,${buf.toString("base64")}`;
@@ -72,6 +75,21 @@ export default async function FlightRadar(
 
 	// format nearby list
 	const nearbyItems = data.nearby || [];
+
+	// sort nearby: moving (>25 kt) first, then by distance (km) ascending
+	const sortedNearby = [...nearbyItems].sort((a, b) => {
+		const aSpeed = a.flight.loc.speed ?? 0;
+		const bSpeed = b.flight.loc.speed ?? 0;
+		const aMoving = aSpeed > 25 ? 1 : 0;
+		const bMoving = bSpeed > 25 ? 1 : 0;
+		if (aMoving !== bMoving) return bMoving - aMoving; // moving first
+		if (!data.center_loc) return 0;
+		const aLoc = a.flight.loc.loc;
+		const bLoc = b.flight.loc.loc;
+		const aDist = haversineKm(aLoc.lat, aLoc.long, data.center_loc.lat, data.center_loc.long);
+		const bDist = haversineKm(bLoc.lat, bLoc.long, data.center_loc.lat, data.center_loc.long);
+		return aDist - bDist;
+	});
 
 	// compute great-circle distance in kilometers between two lat/lon points
 	function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number) {
@@ -289,7 +307,7 @@ export default async function FlightRadar(
 									listStyle: "none",
 								}}
 							>
-								{nearbyItems.map((n, i) => {
+								{sortedNearby.map((n, i) => {
 									const loc = n.flight.loc.loc;
 									const track = n.flight.loc.track ?? 0;
 									const alt = n.flight.loc.alt ?? 0;
@@ -324,7 +342,7 @@ export default async function FlightRadar(
 												<div style={{ fontSize: 20, fontWeight: 700 }}>
 													{n.flight.id.callsign || "N/A"} ({n.flight.id.hex})
 												</div>
-												<div style={{ fontSize: 14, color: "#444" }}>
+												<div style={{ fontSize: 13, color: "#000" }}>
 													Alt: {Math.round(alt)} m · Speed: {Math.round(speed)}{" "}
 													· Hdg: {Math.round(track)}°
 												</div>
@@ -340,13 +358,13 @@ export default async function FlightRadar(
 												<div
 													style={{
 														fontSize: 16,
-														color: "#111",
+														color: "#000",
 														fontWeight: 600,
 													}}
 												>
 													{loc.lat.toFixed(4)}, {loc.long.toFixed(4)}
 												</div>
-												<div style={{ fontSize: 14, color: "#666" }}>
+												<div style={{ fontSize: 14, color: "#333" }}>
 													{distKm} km
 												</div>
 											</div>

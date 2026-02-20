@@ -390,11 +390,40 @@ function normalizeLon(lon: number): number {
 export function getViewBoundingBox(
 	tracking: TrackingKind,
 	center_loc: Location,
-	forward_ratio = 1.3,
+	forward_ratio = 1,
 	zoom?: number,
 ): { unified: BoundingBox; split: BoundingBox[] } {
 	if (tracking.kind === "flight") {
-		return bboxForFlightDegrees(tracking.flight.curr.loc, forward_ratio);
+		if (zoom !== undefined) {
+			const center = tracking.flight.curr.loc.loc;
+			const radius = zoomToDegreeRadius(zoom);
+			let centerLat = center.lat;
+			if (centerLat - radius < -90) centerLat = -90 + radius;
+			if (centerLat + radius > 90) centerLat = 90 - radius;
+			const minLat = Math.max(-90, centerLat - radius);
+			const maxLat = Math.min(90, centerLat + radius);
+			let minLon = center.long - radius;
+			let maxLon = center.long + radius;
+			minLon = normalizeLon(minLon);
+			maxLon = normalizeLon(maxLon);
+			const box = {
+				min: { lat: minLat, long: minLon },
+				max: { lat: maxLat, long: maxLon },
+			};
+			let span = maxLon - minLon;
+			if (span < 0) span += 360;
+			if (span <= 180) {
+				return { unified: box, split: [box] };
+			}
+			return {
+				unified: box,
+				split: [
+					{ min: { lat: minLat, long: minLon }, max: { lat: maxLat, long: 180 } },
+					{ min: { lat: minLat, long: -180 }, max: { lat: maxLat, long: maxLon } },
+				],
+			};
+		}
+		return bboxForFlightDegrees(tracking.flight.curr.loc, 1);
 	}
 
 	const center =
