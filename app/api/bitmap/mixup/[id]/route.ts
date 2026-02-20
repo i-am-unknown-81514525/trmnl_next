@@ -143,7 +143,7 @@ async function renderMixupComposite(
 	assignments: Record<string, string | null>,
 	width: number,
 	height: number,
-	grayscaleLevels: number = 2,
+	grayscaleLevels: number = 4,
 ): Promise<Buffer> {
 	// Render all slots in parallel
 	const slotRenders = await Promise.all(
@@ -195,7 +195,7 @@ async function renderMixupComposite(
 
 	// Convert to BMP with dithering
 	const bmpBuffer = await renderBmp(compositedPng, {
-		ditheringMethod: DitheringMethod.ATKINSON,
+		ditheringMethod: undefined,
 		width,
 		height,
 		grayscale: grayscaleLevels,

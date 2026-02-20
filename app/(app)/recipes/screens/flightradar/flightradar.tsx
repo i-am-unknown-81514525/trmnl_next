@@ -34,14 +34,21 @@ export default async function FlightRadar(
 		const raw = props as DisplayData;
 
 		const toRad = (d: number) => (d * Math.PI) / 180;
-		const haversine = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+		const haversine = (
+			lat1: number,
+			lon1: number,
+			lat2: number,
+			lon2: number,
+		) => {
 			const R = 6371;
 			const dLat = toRad(lat2 - lat1);
 			const dLon = toRad(lon2 - lon1);
 			const a =
 				Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-				Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
-					Math.sin(dLon / 2) * Math.sin(dLon / 2);
+				Math.cos(toRad(lat1)) *
+					Math.cos(toRad(lat2)) *
+					Math.sin(dLon / 2) *
+					Math.sin(dLon / 2);
 			return 2 * R * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 		};
 
@@ -132,7 +139,9 @@ export default async function FlightRadar(
 			land_geo: landFiltered,
 		} as DisplayData;
 		if (process.env.FLIGHTMAP_DEBUG === "1") {
-			console.log("FlightRadar: rendering with provided DisplayData props (filtered)");
+			console.log(
+				"FlightRadar: rendering with provided DisplayData props (filtered)",
+			);
 		}
 	} else {
 		const locParam = props?.locParam ?? "loc:51.47,-0.45,8";
@@ -170,7 +179,10 @@ export default async function FlightRadar(
 			// map isn't empty even if no topo/land geometry is available.
 			showAircraft: data.tracking.kind === "flight",
 			nearby: data.nearby,
-			centerTrail: data.tracking.kind === "flight" ? data.tracking.flight.trails : undefined,
+			centerTrail:
+				data.tracking.kind === "flight"
+					? data.tracking.flight.trails
+					: undefined,
 		});
 		mapImg = `data:image/png;base64,${buf.toString("base64")}`;
 	} catch (e) {
@@ -236,7 +248,7 @@ export default async function FlightRadar(
 
 		const titleStyle: React.CSSProperties = {
 			fontSize: 16,
-			fontWeight: 700,
+			fontWeight: 900,
 			margin: 0,
 			marginBottom: 6,
 		};
@@ -250,7 +262,7 @@ export default async function FlightRadar(
 
 		const smallMuted: React.CSSProperties = {
 			fontSize: 12,
-			color: "#444",
+			color: "#555",
 			marginTop: 6,
 		};
 
@@ -319,7 +331,7 @@ export default async function FlightRadar(
 					style={{
 						width: "100%",
 						height: "100%",
-						border: "12px solid #000",
+						border: "16px solid #000",
 						borderRadius: 10,
 						overflow: "hidden",
 						background: "#fff",
@@ -355,8 +367,8 @@ export default async function FlightRadar(
 									display: "flex",
 									alignItems: "center",
 									justifyContent: "center",
-									background: "#f3f4f6",
-									border: "1px solid #e5e7eb",
+									background: "#ffffff",
+									border: "1px solid #ffffff",
 									borderRadius: 6,
 									overflow: "hidden",
 								}}
@@ -385,7 +397,7 @@ export default async function FlightRadar(
 							<div
 								style={{
 									flex: 1,
-									border: "1px solid #e5e7eb",
+									border: "1px solid #ffffff",
 									borderRadius: 6,
 									padding: 12,
 									boxSizing: "border-box",
@@ -439,7 +451,7 @@ export default async function FlightRadar(
 											key={i}
 											style={{
 												padding: "12px 14px",
-												borderBottom: "1px solid #e5e7eb",
+												borderBottom: "1px solid #ffffff",
 												background: "#fff",
 												display: "flex",
 												alignItems: "center",
@@ -451,14 +463,15 @@ export default async function FlightRadar(
 													display: "flex",
 													flexDirection: "column",
 													gap: 6,
+													minWidth: 150,
 												}}
 											>
-												<div style={{ fontSize: 20, fontWeight: 700 }}>
+												<div style={{ fontSize: 22, fontWeight: 900 }}>
 													{n.flight.id.callsign || "N/A"} ({n.flight.id.hex})
 												</div>
-												<div style={{ fontSize: 13, color: "#000" }}>
-													Alt: {Math.round(alt)} m · Speed: {Math.round(speed)}{" "}
-													· Hdg: {Math.round(track)}°
+												<div style={{ fontSize: 22, color: "#000", fontWeight: 900 }}>
+													{Math.round(alt)} m · {Math.round(speed)} kt
+													· {Math.round(track)}°
 												</div>
 											</div>
 											<div
@@ -466,19 +479,19 @@ export default async function FlightRadar(
 													textAlign: "right",
 													display: "flex",
 													flexDirection: "column",
-													minWidth: 160,
+													minWidth: 150,
 												}}
 											>
 												<div
 													style={{
-														fontSize: 16,
+														fontSize: 22,
 														color: "#000",
-														fontWeight: 600,
+														fontWeight: 900,
 													}}
 												>
 													{loc.lat.toFixed(4)}, {loc.long.toFixed(4)}
 												</div>
-												<div style={{ fontSize: 14, color: "#333" }}>
+												<div style={{ fontSize: 22, color: "#555", fontWeight: 900 }}>
 													{distKm} km
 												</div>
 											</div>

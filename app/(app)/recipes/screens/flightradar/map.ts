@@ -259,7 +259,7 @@ export function drawMapBackground(
 	}
 
 	ctx.save();
-	ctx.fillStyle = "#e9eef2";
+	ctx.fillStyle = "#aaa";
 	ctx.fillRect(0, 0, width, height);
 
 	if (landFC && landFC.features && landFC.features.length > 0) {
@@ -314,8 +314,8 @@ export function drawMapBackground(
 						ctx.lineTo(firstX, firstY as number);
 					}
 				}
-				ctx.fillStyle = "#ffffff";
-				ctx.strokeStyle = "#cfd6db";
+				ctx.fillStyle = "#fff";
+				ctx.strokeStyle = "#fff";
 				ctx.lineWidth = Math.max(1, Math.min(2, (width + height) / 800));
 				// use even-odd rule to avoid winding-order issues
 				try {

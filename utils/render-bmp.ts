@@ -316,16 +316,19 @@ export async function renderBmp(png: Buffer, options: RenderBmpOptions = {}) {
 			}
 		}
 	}
-
+	let dithered: Uint8Array = grayscaleData;
 	// Step 4: Apply the selected dithering method (with quantization to target gray levels)
-	const dithered = applyDithering(
-		grayscaleData,
-		targetWidth,
-		targetHeight,
-		ditheringMethod,
-		grayscale,
-		inverted,
-	);
+	if (false) {
+		// ditheringMethod !== undefined
+		dithered = applyDithering(
+			grayscaleData,
+			targetWidth,
+			targetHeight,
+			ditheringMethod,
+			grayscale,
+			inverted,
+		);
+	}
 
 	// Determine BMP format based on grayscale levels
 	const bitsPerPixel = grayscale === 2 ? 1 : grayscale === 4 ? 2 : 4;

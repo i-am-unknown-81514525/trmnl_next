@@ -265,7 +265,7 @@ export async function renderFrameForFlight(
 		ctx.lineCap = "round";
 		ctx.lineJoin = "round";
 
-		ctx.strokeStyle = "#444";
+		ctx.strokeStyle = "#555";
 		ctx.lineWidth = 1.5;
 		for (const rw of runways) {
 			const [x1, y1] = proj.project(
@@ -290,7 +290,7 @@ export async function renderFrameForFlight(
 			ctx.fill();
 		}
 
-		ctx.strokeStyle = "#222";
+		ctx.strokeStyle = "#555";
 		ctx.lineWidth = 1;
 		for (const n of navaids) {
 			const [x, y] = proj.project(n.lat, shiftLonToRef(n.lon, refLon));
@@ -402,7 +402,7 @@ export async function renderFrameForFlight(
 			ctx.fill();
 		}
 
-		ctx.strokeStyle = "#222";
+		ctx.strokeStyle = "#555";
 		ctx.lineWidth = 1;
 		for (const n of navaids) {
 			const [x, y] = proj.project(n.lat, shiftLonToRef(n.lon, refLon));
@@ -435,7 +435,7 @@ export async function renderFrameForFlight(
 			ctx.save();
 			ctx.translate(x, y);
 			ctx.rotate(-degToRad(track || 0));
-			ctx.fillStyle = "#111";
+			ctx.fillStyle = "#555";
 			ctx.beginPath();
 			ctx.moveTo(0, -planeSize);
 			ctx.lineTo(planeSize / 2, planeSize / 2);
@@ -448,13 +448,13 @@ export async function renderFrameForFlight(
 			const req = entry.parameter?.require_zoom ?? 0;
 			if (typeof zoom === "number" && zoom >= req) {
 				ctx.fillStyle = "#000";
-				ctx.font = "10px sans-serif";
+				ctx.font = "900 14px sans-serif";
 				ctx.textBaseline = "top";
 				ctx.textAlign = "left";
 				ctx.fillText(
 					ff.id.callsign || ff.id.hex || "",
-					x + planeSize + 4,
-					y - 6,
+					Math.round(x + planeSize + 4),
+					Math.round(y - 6),
 				);
 			}
 		}
@@ -530,7 +530,7 @@ export async function renderFrameForFlight(
 		ctx.textAlign = "left";
 		ctx.fillText((flight as any).ident || "", cx + planeSize + 6, cy);
 	}
-
+	ctx.imageSmoothingEnabled = false;
 	const buf = canvas.toBuffer("image/png");
 	// Optional debug dump
 	dumpDebugPNG(buf, "trmnl_flightmap_debug.png");

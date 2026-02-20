@@ -35,7 +35,7 @@ export async function GET(
 		// Validate width and height are positive numbers
 		const validWidth = width > 0 ? width : DEFAULT_IMAGE_WIDTH;
 		const validHeight = height > 0 ? height : DEFAULT_IMAGE_HEIGHT;
-		const grayscaleLevels = grayscaleParam ? parseInt(grayscaleParam, 10) : 2;
+		const grayscaleLevels = grayscaleParam ? parseInt(grayscaleParam, 10) : 4;
 
 		logger.info(
 			`Bitmap request for: ${bitmapPath} in ${validWidth}x${validHeight} with ${grayscaleLevels} gray levels`,
@@ -83,7 +83,7 @@ const renderRecipeBitmap = cache(
 		recipeId: string,
 		width: number,
 		height: number,
-		grayscaleLevels: number = 2,
+		grayscaleLevels: number = 4,
 	) => {
 		const { config, Component, props, element } = await buildRecipeElement({
 			slug: recipeId,
@@ -122,7 +122,7 @@ const renderFallbackBitmap = cache(async (slug: string = "not-found") => {
 			imageWidth: DEFAULT_IMAGE_WIDTH,
 			imageHeight: DEFAULT_IMAGE_HEIGHT,
 			formats: ["bitmap"],
-			grayscale: 2, // Default to 2 levels for fallback
+			grayscale: 4, // Default to 2 levels for fallback
 		});
 
 		if (!renders.bitmap) {

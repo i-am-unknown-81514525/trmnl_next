@@ -205,7 +205,7 @@
 				"type": "string",
 				"label": "Location Parameter",
 				"description": "Location Parameter: (loc:lat,long,zoom, airport:code,zoom, flight:callsign,hex)",
-				"default": "flight:CPA526,780ab8"
+				"default": "flight:TGW809,3e69345f"
 			}
 		},
 		"tags": ["flight", "api", "live-data", "configurable"],
