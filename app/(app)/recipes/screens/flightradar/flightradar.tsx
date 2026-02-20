@@ -309,7 +309,7 @@ export default async function FlightRadar(
 				style={{ ...containerStyle, alignItems: "center", textAlign: "center" }}
 			>
 				<h3 style={monoLarge}>{new Date().toUTCString()}</h3>
-				<div style={smallMuted}>UTC Time (location)</div>
+				<div style={{...smallMuted, fontWeight: 900}}>UTC Time</div>
 			</div>
 		);
 	}
