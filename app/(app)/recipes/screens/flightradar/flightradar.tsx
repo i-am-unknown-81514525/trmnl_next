@@ -170,6 +170,7 @@ export default async function FlightRadar(
 			// map isn't empty even if no topo/land geometry is available.
 			showAircraft: data.tracking.kind === "flight",
 			nearby: data.nearby,
+			centerTrail: data.tracking.kind === "flight" ? data.tracking.flight.trails : undefined,
 		});
 		mapImg = `data:image/png;base64,${buf.toString("base64")}`;
 	} catch (e) {

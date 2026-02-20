@@ -19,6 +19,7 @@ import type {
 	FlightLocation,
 	BoundingBox,
 	ForeignFlightDataDisplay,
+	Trail,
 } from "./schema";
 
 function combineBoxesToContinuous(
@@ -99,6 +100,8 @@ export async function renderFrameForFlight(
 		showAircraft?: boolean;
 		// optional nearby flights to draw on the map
 		nearby?: ForeignFlightDataDisplay[];
+		// optional trail for the center flight (most recent first-to-last points)
+		centerTrail?: Trail[];
 	},
 ) {
 	const DPR = opts.dpr ?? 1;
@@ -303,6 +306,36 @@ export async function renderFrameForFlight(
 		drawMapBackground(ctx, topo, combined, width, height, refLon);
 
 		const proj = createProjector(combined, width, height, refLon);
+
+		// Draw center trail (if provided) as a polyline in map coordinates.
+		try {
+			const trail = opts.centerTrail ?? [];
+			if (trail && trail.length > 1) {
+				ctx.save();
+				ctx.lineWidth = 1.5;
+				ctx.strokeStyle = "rgba(0,0,0,0.6)";
+				ctx.lineCap = "round";
+				ctx.lineJoin = "round";
+				ctx.beginPath();
+				let started = false;
+				for (const t of trail) {
+					const lat = t.loc.loc.lat;
+					const lon = shiftLonToRef(t.loc.loc.long, refLon);
+					const [x, y] = proj.project(lat, lon);
+					if (!Number.isFinite(x) || !Number.isFinite(y)) continue;
+					if (!started) {
+						ctx.moveTo(x, y);
+						started = true;
+					} else {
+						ctx.lineTo(x, y);
+					}
+				}
+				ctx.stroke();
+				ctx.restore();
+			}
+		} catch (e) {
+			// ignore
+		}
 		let airports = mergeBoxQueries(
 			boxes.split,
 			(b) => findAirportInBox(b.min.lat, b.min.long, b.max.lat, b.max.long),

@@ -354,6 +354,18 @@ async function getFlightData(id: FlightID): Promise<FlightData | null> {
 	if (trails.length === 0) {
 		return null;
 	}
+
+	try {
+		const maxTrail = Number(process.env.FLIGHTMAP_MAX_TRAIL_POINTS ?? 80);
+		if (!isNaN(maxTrail) && maxTrail > 0 && trails.length > maxTrail) {
+			const start = Math.max(0, trails.length - maxTrail);
+			const short = trails.slice(start);
+			trails.length = 0;
+			for (const t of short) trails.push(t);
+		}
+	} catch (e) {
+		// ignore
+	}
 	const curr = trails[trails.length - 1];
 	let metadata: FlightMetadata | null = null;
 	const airport_data = data.result.response.data.flight.airport;
