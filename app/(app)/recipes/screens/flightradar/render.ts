@@ -83,6 +83,17 @@ function createProjector(
 	};
 }
 
+function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number) {
+	const toRad = (d: number) => (d * Math.PI) / 180;
+	const R = 6371.0;
+	const dLat = toRad(lat2 - lat1);
+	const dLon = toRad(lon2 - lon1);
+	const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+		Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+	const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+	return R * c;
+}
+
 export async function renderFrameForFlight(
 	topo: TopoOrGeo,
 	flight: FlightLocation,
@@ -268,6 +279,17 @@ export async function renderFrameForFlight(
 		ctx.strokeStyle = "#555";
 		ctx.lineWidth = 1.5;
 		for (const rw of runways) {
+			// Skip runway data error
+			const maxRunwayKm = Number(process.env.FLIGHTMAP_MAX_RUNWAY_KM ?? 100);
+			const leLon = rw.le_long;
+			const heLon = rw.he_long;
+			const distKm = haversineKm(rw.le_lat, leLon, rw.he_lat, heLon);
+			if (!isNaN(maxRunwayKm) && distKm > maxRunwayKm) {
+				if (process.env.FLIGHTMAP_DEBUG === "1") {
+					console.log("skipping runway (too long)", { id: rw.id ?? null, distKm });
+				}
+				continue;
+			}
 			const [x1, y1] = proj.project(
 				rw.le_lat,
 				shiftLonToRef(rw.le_long, refLon),
@@ -380,6 +402,17 @@ export async function renderFrameForFlight(
 		ctx.strokeStyle = "#444";
 		ctx.lineWidth = 1.5;
 		for (const rw of runways) {
+			// Skip runway data error
+			const maxRunwayKm = Number(process.env.FLIGHTMAP_MAX_RUNWAY_KM ?? 100);
+			const leLon = rw.le_long;
+			const heLon = rw.he_long;
+			const distKm = haversineKm(rw.le_lat, leLon, rw.he_lat, heLon);
+			if (!isNaN(maxRunwayKm) && distKm > maxRunwayKm) {
+				if (process.env.FLIGHTMAP_DEBUG === "1") {
+					console.log("skipping runway (too long)", { id: rw.id ?? null, distKm });
+				}
+				continue;
+			}
 			const [x1, y1] = proj.project(
 				rw.le_lat,
 				shiftLonToRef(rw.le_long, refLon),

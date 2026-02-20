@@ -144,7 +144,7 @@ export default async function FlightRadar(
 			);
 		}
 	} else {
-		const locParam = props?.locParam ?? "loc:51.47,-0.45,8";
+		const locParam = props?.locParam ?? "loc:51.47,-0.45,0";
 		if (process.env.FLIGHTMAP_DEBUG === "1") {
 			console.log("FlightRadar: rendering with locParam:", locParam);
 		}
