@@ -71,10 +71,10 @@ async function getFlightInZone(
 	const top_right: Location = bound.max;
 	const response = await fetch(
 		`https://globe.adsbexchange.com/re-api/?binCraft&zstd&box=${
-			bottom_left.lat - 3 < -180 ? -180 : bottom_left.lat - 3
-		},${top_right.lat + 3 > 180 ? 180 : top_right.lat + 3},${
-			bottom_left.long - 3 < -90 ? -90 : bottom_left.long - 3
-		},${top_right.long + 3 > 90 ? 90 : top_right.long + 3}`,
+			bottom_left.lat - 3 < -90 ? -90 : bottom_left.lat - 3
+		},${top_right.lat + 3 > 90 ? 90 : top_right.lat + 3},${
+			bottom_left.long - 3 < -180 ? -180 : bottom_left.long - 3
+		},${top_right.long + 3 > 180 ? 180 : top_right.long + 3}`,
 		{
 			headers: {
 				Referer: "https://globe.adsbexchange.com/",
@@ -117,6 +117,14 @@ async function getFlightInZone(
 			.decode(callsignBytes.subarray(0, end))
 			.trim();
 
+		// registration field (bytes 92..104) — may be zero-terminated
+		const regBytes = data.subarray(base + 92, base + 104);
+		let regEnd = regBytes.indexOf(0);
+		if (regEnd === -1) regEnd = regBytes.length;
+		const registration = new TextDecoder()
+			.decode(regBytes.subarray(0, regEnd))
+			.trim() || null;
+
 		const alt = validity1 & 16 ? view.getInt16(base + 20, true) * 25 : null;
 		const speed =
 			validity1 & 128 ? view.getInt16(base + 34, true) / 10.0 : null;
@@ -125,7 +133,7 @@ async function getFlightInZone(
 		const track = validity2 & 8 ? view.getInt16(base + 40, true) / 90.0 : null;
 
 		arr.push({
-			id: { hex, callsign, fr24_hex8: null },
+			id: { hex, callsign, fr24_hex8: null, reg: registration },
 			loc: {
 				loc: {
 					lat,
@@ -319,13 +327,24 @@ async function getFr24AirportLocation(
 
 async function getEstFR24(id: FlightID): Promise<FullTimeData | null> {
 	const response = await fetch(
-		`https://api.flightradar24.com/common/v1/flight/list.json?query=${id.callsign}&fetchBy=reg&filterBy=historic&limit=5&page=1&timestamp=0`,
+		`https://api.flightradar24.com/common/v1/flight/list.json?query=${id.callsign}&fetchBy=flight&filterBy=historic&limit=5&page=1&timestamp=0`,
 		{ cache: "no-store" },
 	);
 	if (!response.ok) {
 		throw new Error(`HTTP error! Status: ${response.status}`);
 	}
-	return (await response.json())?.result?.response?.data?.[0]?.time ?? null;
+	let dt = (await response.json());
+	if (dt?.result?.response?.data?.[0] === undefined && id.reg) {
+		const resp_alt = await fetch(
+			`https://api.flightradar24.com/common/v1/flight/list.json?query=${id.reg}&fetchBy=reg&filterBy=historic&limit=5&page=1&timestamp=0`,
+			{ cache: "no-store" },
+		);
+		if (!resp_alt.ok) {
+			throw new Error(`HTTP error! Status: ${resp_alt.status}`);
+		}
+		dt = (await resp_alt.json());
+	}
+	return dt?.result?.response?.data?.[0]?.time ?? null;
 }
 
 function departureKindMapping(
@@ -353,6 +372,9 @@ async function getFlightData(id: FlightID): Promise<FlightData | null> {
 	const trails = extractTrailFR24(data) || (await getTrailADSBExchange(id));
 	if (trails.length === 0) {
 		return null;
+	}
+	if (data.result.response.data.flight.aircraft?.identification?.registration && !id.reg) {
+		id.reg = data.result.response.data.flight.aircraft?.identification?.registration;
 	}
 
 	try {
@@ -604,6 +626,7 @@ export default async function getData({
 			hex: hex,
 			callsign: callsign,
 			fr24_hex8: null,
+			reg: null,
 		});
 		if (data === null) {
 			throw new Error("Flight not found");

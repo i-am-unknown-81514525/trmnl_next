@@ -29,6 +29,7 @@ export interface FlightID {
 	hex: string;
 	callsign: string;
 	fr24_hex8: string | null;
+	reg: string | null;
 }
 
 export interface ForeignFlightData {
