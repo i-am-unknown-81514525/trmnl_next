@@ -282,6 +282,8 @@ export const renderRecipeOutputs = cache(
 			Promise<{ key: keyof RenderResults; value: Buffer | null }>
 		> = [];
 
+		if (grayscale === undefined) grayscale = 4;
+
 		if (formats.includes("bitmap")) {
 			tasks.push(
 				(async () => {
