@@ -69,19 +69,21 @@ export interface FR24AirportResp {
 }
 
 export interface FR24AirportResult {
-  request: {
-    callback: null | any;
-    code: string | any;
-    device: null | any;
-    fleet: null | any;
-    format: "json" | any;
-    limit: number;
-    page: number;
-    pk: null | any;
-    plugin: ["schedule"] | string[];
-    "plugin-setting": { mode: "arrivals" | "departures"; timestamp: number };
-    satelliteImage: { scale: 1 | number };
-    token: number | any;
+  result: {
+    request: {
+      callback: null | any;
+      code: string | any;
+      device: null | any;
+      fleet: null | any;
+      format: "json" | any;
+      limit: number;
+      page: number;
+      pk: null | any;
+      plugin: ["schedule"] | string[];
+      "plugin-setting": { mode: "arrivals" | "departures"; timestamp: number };
+      satelliteImage: { scale: 1 | number };
+      token: number | any;
+    };
+    response: FR24AirportResp;
   };
-  response: FR24AirportResp;
 }
