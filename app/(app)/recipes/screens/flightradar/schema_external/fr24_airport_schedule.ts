@@ -45,6 +45,14 @@ export interface FR24AirportData {
   arrivals?: FR24FlightDataPagingWrap;
 }
 
+export interface FR24AirportDataDepartures {
+  departures: FR24FlightDataPagingWrap;
+}
+
+export interface FR24AirportDataArrivals {
+  arrivals: FR24FlightDataPagingWrap;
+}
+
 export interface FR24AircraftImgData {
   registration: string;
   images: {
@@ -55,7 +63,7 @@ export interface FR24AircraftImgData {
 }
 
 export interface FR24AirportResp {
-  airport: { pluginData: FR24AirportData };
+  airport: { pluginData: FR24AirportDataDepartures | FR24AirportDataArrivals };
   airlines: FR24AirlinesData;
   aircraftImages: FR24AircraftImgData[];
 }
