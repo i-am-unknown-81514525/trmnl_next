@@ -383,9 +383,7 @@ async function getEstFR24(id: FlightID): Promise<FullTimeData | null> {
   return chosen?.time ?? null;
 }
 
-async function getArrivalDepartureData(
-  airport_code: string,
-): Promise<{
+async function getArrivalDepartureData(airport_code: string): Promise<{
   departures: FR24AirportListFlightResult[];
   arrivals: FR24AirportListFlightResult[];
 }> {
@@ -665,6 +663,13 @@ export default async function getData({
       if (zoom < 0) zoom = 0;
       if (zoom > 10) zoom = 10;
       if (isNaN(zoom)) zoom = 5;
+    }
+    try {
+      const board = await getArrivalDepartureData(airport.code);
+      airport.departures = board.departures;
+      airport.arrivals = board.arrivals;
+    } catch (e) {
+      // ignore
     }
     kind = { kind: "static_airport", airport: airport };
     location = airport.loc;
