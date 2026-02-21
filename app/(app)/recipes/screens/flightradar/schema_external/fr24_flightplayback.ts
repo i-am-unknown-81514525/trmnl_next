@@ -1,13 +1,13 @@
 export interface FlightIdentification {
 	id: string;
 	number: { default: string | null };
-	callsign: string;
+	callsign: string | null;
 }
 
 export interface FlightStatusData {
 	status: {
 		text: "estimated" | "landed" | "scheduled" | "diverted" | string;
-		type: "arrival" | string;
+		type: "arrival" | "departure" | string;
 		color: "green" | "gray" | "yellow" | string | null; // default: red if null?
 		diverted: string | null; // Airport code
 	};

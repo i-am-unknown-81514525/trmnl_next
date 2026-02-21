@@ -121,9 +121,8 @@ async function getFlightInZone(
 		const regBytes = data.subarray(base + 92, base + 104);
 		let regEnd = regBytes.indexOf(0);
 		if (regEnd === -1) regEnd = regBytes.length;
-		const registration = new TextDecoder()
-			.decode(regBytes.subarray(0, regEnd))
-			.trim() || null;
+		const registration =
+			new TextDecoder().decode(regBytes.subarray(0, regEnd)).trim() || null;
 
 		const alt = validity1 & 16 ? view.getInt16(base + 20, true) * 25 : null;
 		const speed =
@@ -327,24 +326,55 @@ async function getFr24AirportLocation(
 
 async function getEstFR24(id: FlightID): Promise<FullTimeData | null> {
 	const response = await fetch(
-		`https://api.flightradar24.com/common/v1/flight/list.json?query=${id.callsign}&fetchBy=flight&filterBy=historic&limit=5&page=1&timestamp=0`,
+		`https://api.flightradar24.com/common/v1/flight/list.json?query=${id.callsign}&fetchBy=flight&filterBy=historic&limit=50&page=1&timestamp=0`,
 		{ cache: "no-store" },
 	);
 	if (!response.ok) {
 		throw new Error(`HTTP error! Status: ${response.status}`);
 	}
-	let dt = (await response.json());
-	if (dt?.result?.response?.data?.[0] === undefined && id.reg) {
+	let dt = await response.json();
+
+	function findByCall(entries: any[], needleCall: string | null) {
+		if (!Array.isArray(entries) || !needleCall) return null;
+		for (const it of entries) {
+			const ident = it?.identification ?? {};
+			const itemCall = ident?.callsign ?? null;
+			const itemNum = ident?.number?.default ?? null;
+			if (itemCall === needleCall || itemNum === needleCall) return it;
+		}
+		return null;
+	}
+	function findByHex(entries: any[], needleHex: string | null) {
+		if (!Array.isArray(entries) || !needleHex) return null;
+		for (const it of entries) {
+			const aircraft = it?.aircraft ?? {};
+			const itemHex = aircraft?.hex ? String(aircraft.hex).toLowerCase() : null;
+			if (itemHex === needleHex) return it;
+		}
+		return null;
+	}
+
+	let list = dt?.result?.response?.data ?? [];
+	if ((!Array.isArray(list) || list.length === 0) && id.reg) {
 		const resp_alt = await fetch(
-			`https://api.flightradar24.com/common/v1/flight/list.json?query=${id.reg}&fetchBy=reg&filterBy=historic&limit=5&page=1&timestamp=0`,
+			`https://api.flightradar24.com/common/v1/flight/list.json?query=${id.reg}&fetchBy=reg&filterBy=historic&limit=50&page=1&timestamp=0`,
 			{ cache: "no-store" },
 		);
 		if (!resp_alt.ok) {
 			throw new Error(`HTTP error! Status: ${resp_alt.status}`);
 		}
-		dt = (await resp_alt.json());
+		const alt = await resp_alt.json();
+		list = alt?.result?.response?.data ?? [];
 	}
-	return dt?.result?.response?.data?.[0]?.time ?? null;
+
+	const needleCall = id.callsign ?? null;
+	const needleHex = id.hex ? String(id.hex).toLowerCase() : null;
+	let chosen =
+		findByCall(list, needleCall) ??
+		findByHex(list, needleHex) ??
+		list?.[0] ??
+		null;
+	return chosen?.time ?? null;
 }
 
 function departureKindMapping(
@@ -373,8 +403,12 @@ async function getFlightData(id: FlightID): Promise<FlightData | null> {
 	if (trails.length === 0) {
 		return null;
 	}
-	if (data.result.response.data.flight.aircraft?.identification?.registration && !id.reg) {
-		id.reg = data.result.response.data.flight.aircraft?.identification?.registration;
+	if (
+		data.result.response.data.flight.aircraft?.identification?.registration &&
+		!id.reg
+	) {
+		id.reg =
+			data.result.response.data.flight.aircraft?.identification?.registration;
 	}
 
 	try {

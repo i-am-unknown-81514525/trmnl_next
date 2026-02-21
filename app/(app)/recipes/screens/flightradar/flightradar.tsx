@@ -309,7 +309,7 @@ export default async function FlightRadar(
 				style={{ ...containerStyle, alignItems: "center", textAlign: "center" }}
 			>
 				<h3 style={monoLarge}>{new Date().toUTCString()}</h3>
-				<div style={{...smallMuted, fontWeight: 900}}>UTC Time</div>
+				<div style={{ ...smallMuted, fontWeight: 900 }}>UTC Time</div>
 			</div>
 		);
 	}
@@ -469,9 +469,15 @@ export default async function FlightRadar(
 												<div style={{ fontSize: 22, fontWeight: 900 }}>
 													{n.flight.id.callsign || "N/A"} ({n.flight.id.hex})
 												</div>
-												<div style={{ fontSize: 22, color: "#000", fontWeight: 900 }}>
-													{Math.round(alt)} m · {Math.round(speed)} kt
-													· {Math.round(track)}°
+												<div
+													style={{
+														fontSize: 22,
+														color: "#000",
+														fontWeight: 900,
+													}}
+												>
+													{Math.round(alt)} m · {Math.round(speed)} kt ·{" "}
+													{Math.round(track)}°
 												</div>
 											</div>
 											<div
@@ -491,7 +497,13 @@ export default async function FlightRadar(
 												>
 													{loc.lat.toFixed(4)}, {loc.long.toFixed(4)}
 												</div>
-												<div style={{ fontSize: 22, color: "#555", fontWeight: 900 }}>
+												<div
+													style={{
+														fontSize: 22,
+														color: "#555",
+														fontWeight: 900,
+													}}
+												>
 													{distKm} km
 												</div>
 											</div>
