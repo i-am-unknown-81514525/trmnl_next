@@ -205,7 +205,7 @@
         "type": "string",
         "label": "Location Parameter",
         "description": "Location Parameter: (loc:lat,long,zoom, airport:code,zoom, flight:callsign,hex)",
-        "default": "airport:LHR,7"
+        "default": "flight:BAW33,3e6f8cf2"
       }
     },
     "tags": ["flight", "api", "live-data", "configurable"],
