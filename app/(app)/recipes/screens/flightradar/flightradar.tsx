@@ -300,16 +300,25 @@ export default async function FlightRadar(
 				content += "Arrival - N/A";
 			}
 
+			const coord = `${data.tracking.flight.curr.loc.loc.lat.toFixed(4)}, ${data.tracking.flight.curr.loc.loc.long.toFixed(4)}`;
+			const attr = `${data.tracking.flight.curr.loc.speed} kt - ${data.tracking.flight.curr.loc.alt} ft - ${data.tracking.flight.curr.loc.track}°`;
+
 			return (
 				<div style={containerStyle}>
-					<div style={{fontWeight: 900, fontSize: 16 }}>
+					<div style={{fontWeight: 900, fontSize: 18}}>
 						Callsign: {data.tracking.flight.id.callsign} Hex: {data.tracking.flight.id.hex}
 					</div>
-					<div style={{fontWeight: 900, fontSize: 16}}>
+					<div style={{fontWeight: 900, fontSize: 18}}>
 						{content}
 					</div>
-					<div style={{fontWeight: 900, fontSize: 16}}>
+					<div style={{fontWeight: 900, fontSize: 18}}>
 						Src: {md?.src?.code ?? "N/A"} - Dest: {md?.dest?.code ?? "N/A"}
+					</div>
+					<div style={{fontWeight: 900, fontSize: 18}}>
+						{coord}
+					</div>
+					<div style={{fontWeight: 900, fontSize: 18}}>
+						{attr}
 					</div>
 				</div>
 			);
