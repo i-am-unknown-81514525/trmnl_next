@@ -239,119 +239,185 @@ export default async function FlightRadar(
 	}
 
 	// details depending on type
-	function Details() {
-		const containerStyle: React.CSSProperties = {
-			width: "100%",
-			height: "100%",
-			display: "flex",
-			flexDirection: "column",
-			justifyContent: "center",
-			alignItems: "flex-start",
-			boxSizing: "border-box",
-			color: "#000",
-		};
+  function Details() {
+    const containerStyle: React.CSSProperties = {
+      width: "100%",
+      height: "100%",
+      display: "flex",
+      flexDirection: "column",
+      justifyContent: "center",
+      alignItems: "flex-start",
+      boxSizing: "border-box",
+      color: "#000",
+    };
 
-		const titleStyle: React.CSSProperties = {
-			fontSize: 16,
-			fontWeight: 900,
-			margin: 0,
-			marginBottom: 6,
-		};
+    const titleStyle: React.CSSProperties = {
+      fontSize: 16,
+      fontWeight: 900,
+      margin: 0,
+      marginBottom: 6,
+    };
 
-		const monoLarge: React.CSSProperties = {
-			fontFamily: "monospace",
-			fontSize: 28,
-			lineHeight: 1.05,
-			margin: 0,
-		};
+    const monoLarge: React.CSSProperties = {
+      fontFamily: "monospace",
+      fontSize: 28,
+      lineHeight: 1.05,
+      margin: 0,
+    };
 
-		const smallMuted: React.CSSProperties = {
-			fontSize: 12,
-			color: "#555",
-			marginTop: 6,
-		};
+    const smallMuted: React.CSSProperties = {
+      fontSize: 12,
+      color: "#555",
+      marginTop: 6,
+    };
 
-		const formatter = new Intl.DateTimeFormat('en-GB', {
-			hour: '2-digit',
-			minute: '2-digit',
-			hour12: false
-		});
+    const formatter = new Intl.DateTimeFormat('en-GB', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    });
 
-		if (data.tracking.kind === "flight") {
-			const md = data.tracking.flight.metadata;
-			let content = "";
-			if (md?.time_data?.real.departure) {
-				content += "Departure - " + formatter.format(new Date(md.time_data.real.departure * 1000));
-			} else if (md?.time_data?.estimated.departure) {
-				content += "Est. Depart - " + formatter.format(new Date(md.time_data.estimated.departure * 1000));
-			} else if (md?.time_data?.scheduled.departure) {
-				content += "Scheduled - " + formatter.format(new Date(md.time_data.scheduled.departure * 1000));
-			} else {
-				content += "Departure - N/A";
-			}
-			content += "\n";
-			if (md?.time_data?.real.arrival) {
-				content += "Arrival - " + formatter.format(new Date(md.time_data.real.arrival * 1000));
-			} else if (md?.time_data?.estimated.arrival) {
-				content += "Est. Arrival - " + formatter.format(new Date(md?.time_data.estimated.arrival * 1000));
-			} else if (md?.time_data?.scheduled.arrival) {
-				content += "Sch. Arrival - " + formatter.format(new Date(md?.time_data.scheduled.arrival * 1000));
-			} else {
-				content += "Arrival - N/A";
-			}
+    if (data.tracking.kind === "flight") {
+      const md = data.tracking.flight.metadata;
+      let content = "";
+      if (md?.time_data?.real.departure) {
+        content += "Departure - " + formatter.format(new Date(md.time_data.real.departure * 1000));
+      } else if (md?.time_data?.estimated.departure) {
+        content += "Est. Depart - " + formatter.format(new Date(md.time_data.estimated.departure * 1000));
+      } else if (md?.time_data?.scheduled.departure) {
+        content += "Scheduled - " + formatter.format(new Date(md.time_data.scheduled.departure * 1000));
+      } else {
+        content += "Departure - N/A";
+      }
+      content += "\n";
+      if (md?.time_data?.real.arrival) {
+        content += "Arrival - " + formatter.format(new Date(md.time_data.real.arrival * 1000));
+      } else if (md?.time_data?.estimated.arrival) {
+        content += "Est. Arrival - " + formatter.format(new Date(md?.time_data.estimated.arrival * 1000));
+      } else if (md?.time_data?.scheduled.arrival) {
+        content += "Sch. Arrival - " + formatter.format(new Date(md?.time_data.scheduled.arrival * 1000));
+      } else {
+        content += "Arrival - N/A";
+      }
 
-			const coord = `${data.tracking.flight.curr.loc.loc.lat.toFixed(4)}, ${data.tracking.flight.curr.loc.loc.long.toFixed(4)}`;
-			const attr = `${data.tracking.flight.curr.loc.speed} kt - ${data.tracking.flight.curr.loc.alt} ft - ${data.tracking.flight.curr.loc.track}°`;
+      const coord = `${data.tracking.flight.curr.loc.loc.lat.toFixed(4)}, ${data.tracking.flight.curr.loc.loc.long.toFixed(4)}`;
+      const attr = `${data.tracking.flight.curr.loc.speed} kt - ${data.tracking.flight.curr.loc.alt} ft - ${data.tracking.flight.curr.loc.track}°`;
 
-			return (
-				<div style={containerStyle}>
-					<div style={{fontWeight: 900, fontSize: 18}}>
-						Callsign: {data.tracking.flight.id.callsign} Hex: {data.tracking.flight.id.hex}
-					</div>
-					<div style={{fontWeight: 900, fontSize: 18}}>
-						{content}
-					</div>
-					<div style={{fontWeight: 900, fontSize: 18}}>
-						Src: {md?.src?.code ?? "N/A"} - Dest: {md?.dest?.code ?? "N/A"}
-					</div>
-					<div style={{fontWeight: 900, fontSize: 18}}>
-						{coord}
-					</div>
-					<div style={{fontWeight: 900, fontSize: 18}}>
-						{attr}
-					</div>
-				</div>
-			);
-		}
+      return (
+        <div style={containerStyle}>
+          <div style={{ fontWeight: 900, fontSize: 18 }}>
+            Callsign: {data.tracking.flight.id.callsign} Hex: {data.tracking.flight.id.hex}
+          </div>
+          <div style={{ fontWeight: 900, fontSize: 18 }}>
+            {content}
+          </div>
+          <div style={{ fontWeight: 900, fontSize: 18 }}>
+            Src: {md?.src?.code ?? "N/A"} - Dest: {md?.dest?.code ?? "N/A"}
+          </div>
+          <div style={{ fontWeight: 900, fontSize: 18 }}>
+            {coord}
+          </div>
+          <div style={{ fontWeight: 900, fontSize: 18 }}>
+            {attr}
+          </div>
+        </div>
+      );
+    }
 
-		if (data.tracking.kind === "static_airport") {
-			const ap = data.tracking.airport;
-			return (
-				<div style={containerStyle}>
-					<h3 style={titleStyle}>Airport</h3>
-					<div style={{ fontSize: 14 }}>
-						{ap.code} — {ap.name}
-					</div>
-					<div style={smallMuted}>Combined departures/arrivals placeholder</div>
-					<div style={smallMuted}>Zoom: {String(data.zoom ?? "(n/a)")}</div>
-					<div style={smallMuted}>
-						Bounds: {data.bound.min.lat.toFixed(4)},
-						{data.bound.min.long.toFixed(4)} — {data.bound.max.lat.toFixed(4)},
-						{data.bound.max.long.toFixed(4)}
-					</div>
-				</div>
-			);
-		}
+    if (data.tracking.kind === "static_airport") {
+      const ap = data.tracking.airport;
+      interface DisplayFlight {
+        time: number | null, // Est. Departure/Arrival Time
+        callsign: string | null,
+        airline: string | null,
+        alt_loc: string | null, // Departure/Arrival location (differ to current)
+        kind: "departure" | "arrival",
+        accuracy: "real" | "estimated" | "scheduled" | null
+      }
+      interface DisplayFlightTimed {
+        time: number, // Est. Departure/Arrival Time
+        callsign: string | null,
+        airline: string | null,
+        alt_loc: string | null, // Departure/Arrival location (differ to current)
+        kind: "departure" | "arrival",
+        accuracy: "estimated" | "scheduled"
+      }
+      const departure_flight: DisplayFlight[] = data.tracking.airport.departures?.map(x => ({
+        time: x.flight.time.real.departure ||
+          x.flight.time.estimated.departure ||
+          x.flight.time.scheduled.departure ||
+          null,
+        callsign: x.flight.identification?.callsign || null,
+        airline: x.flight.airline?.short ||
+          x.flight.airline?.name || null,
+        alt_loc: x.flight.airport?.real?.name ||
+          x.flight.airport?.destination.name ||
+          null,
+        kind: "departure",
+        accuracy: x.flight.time.real.departure ? "real" :
+          x.flight.time.estimated.departure ? "estimated" :
+            x.flight.time.scheduled.departure ? "scheduled" :
+              null
+      })) || [];
+      const arrival_flight: DisplayFlight[] = data.tracking.airport.departures?.map(x => ({
+        time: x.flight.time.real.arrival ||
+          x.flight.time.estimated.arrival ||
+          x.flight.time.scheduled.arrival ||
+          null,
+        callsign: x.flight.identification?.callsign || null,
+        airline: x.flight.airline?.short ||
+          x.flight.airline?.name || null,
+        alt_loc: x.flight.airport?.real?.name ||
+          x.flight.airport?.origin.name ||
+          null,
+        kind: "arrival",
+        accuracy: x.flight.time.real.arrival ? "real" :
+          x.flight.time.estimated.arrival ? "estimated" :
+            x.flight.time.scheduled.arrival ? "scheduled" :
+              null
+      })) || [];
+      const curr = Date.now() / 1000 - 60; // 1 minutes toralence :)
+      // @ts-ignore
+      const combined: DisplayFlightTimed[] = [...departure_flight, ...arrival_flight]
+        .filter(x => x.time && x.time >= curr && x.accuracy && x.accuracy !== "real") // filter happened event
+        // @ts-ignore the filter prevented time to bu nullable
+        .toSorted((a, b) => a.time - b.time);
+      function capitalizeWords(string: string): string {
+        return string.split(' ').map(word =>
+          word.charAt(0).toUpperCase() + word.slice(1)
+        ).join(' ')
+      }
 
-		return (
-			<div
-				style={{ ...containerStyle, alignItems: "center", textAlign: "center" }}
-			>
-				<h3 style={monoLarge}>{new Date().toUTCString()}</h3>
-				<div style={{ ...smallMuted, fontWeight: 900 }}>UTC Time</div>
-			</div>
-		);
-	}
+      return (
+        <div style={{ ...containerStyle, fontWeight: 900, fontSize: 16, alignItems: "center", textAlign: "center" }}>
+          <table>
+            {combined.map((n, i) => {
+              return <tr>
+                <td>
+                  {n.callsign || "N/A"}
+                </td>
+                <td>
+                  {n.airline || "N/A"}
+                </td>
+                <td>
+                  {capitalizeWords(n.kind)}
+                </td>
+                <td>
+                  {capitalizeWords(n.accuracy)}
+                </td>
+                <td>
+                  {formatter.format(new Date(n.time * 1000))}
+                </td>
+                <td>
+                  {n.alt_loc || "N/A"}
+                </td>
+              </tr>
+            })}
+          </table>
+        </div>
+      );
+    }
+  }
 
 	return (
 		<PreSatori width={800} height={480}>
