@@ -1,3 +1,31 @@
+# TRMNL Next.js flightradar
+
+This is a repo forked from [TRMNL Next.js](https://github.com/usetrmnl/byos_next), with added recipe some patched server code to render event properly.
+
+The flight tracker can track on a specific location, airport (with various zoom level), or tracking specific flight.
+
+The input can be `airport:{icao},{zoom}`, `loc:{lat},{long},{zoom}` or `flight:{callsign},{fr24_hex}`.
+
+This require at least 4 greyscale level (It wouldn't render correctly with only 2 greyscale level)
+
+### Added:
+
+- `app/(app)/recipes/screens/flightradar` which contains the entire display logic (including map generation, flight location tracking, surrounding flight, flight path history and arrival/departure board)
+
+### Modified:
+
+- `app/(app)/recipes/screens.json` added the screen options
+- `data/` contains data scraped from third party which contains offline info for airports, runways and navaid.
+- `app/api/bitmap/[[...slug]]/route.ts` greyscale patch 1
+- `app/api/bitmap/mixup/[id]/route.ts` greyscale patch 2
+- `lib/recipes/recipe-renderer.ts` request timeout patch
+- `next.config.ts` lib config patch
+- `test/` decoding test
+- `utils/render-bmp.ts` greyscale patch 3
+
+<detaiils>
+<summary>Oroginal README</summary>
+
 # BYOS Next.js for TRMNL 🖥️
 
 [![License](https://img.shields.io/github/license/usetrmnl/byos_next)](LICENSE)
@@ -11,11 +39,13 @@
 [![GitHub Forks](https://img.shields.io/github/forks/usetrmnl/byos_next?style=social)](https://github.com/usetrmnl/byos_next/network/members)
 
 ## 🚀 Overview
+
 **BYOS (Build Your Own Server) Next.js** is a Next.js implementation that powers device management, playlist-driven content scheduling, and on-demand BMP generation for e-ink displays.
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fusetrmnl%2Fbyos_next&env=AUTH_ENABLED&envDefaults=%7B%22AUTH_ENABLED%22%3A%22false%22%7D&envDescription=User%20authentication%20is%20disabled.&envLink=https%3A%2F%2Fgithub.com%2Fusetrmnl%2Fbyos_next%3Ftab%3Dreadme-ov-file&project-name=byos-next&repository-name=byos_next&demo-title=BYOS%20NextJS&demo-description=BYOS%20(Build%20Your%20Own%20Server)%20Next.js%2C%20TRMNL%20server%20with%20local%20recipe%20rendering%20and%20cloud%20proxy%20support.&demo-url=https%3A%2F%2Fbyos-next-demo.vercel.app&demo-image=https%3A%2F%2Fusetrmnl.com%2Fimages%2Fbrand%2Ficons%2Ficon--brand.svg&products=%5B%7B%22type%22%3A%22integration%22%2C%22integrationSlug%22%3A%22neon%22%2C%22productSlug%22%3A%22neon%22%2C%22protocol%22%3A%22storage%22%2C%22group%22%3A%22postgres%22%7D%5D)
+[![Deploy with Vercel](https://vercel.com/button)](<https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fusetrmnl%2Fbyos_next&env=AUTH_ENABLED&envDefaults=%7B%22AUTH_ENABLED%22%3A%22false%22%7D&envDescription=User%20authentication%20is%20disabled.&envLink=https%3A%2F%2Fgithub.com%2Fusetrmnl%2Fbyos_next%3Ftab%3Dreadme-ov-file&project-name=byos-next&repository-name=byos_next&demo-title=BYOS%20NextJS&demo-description=BYOS%20(Build%20Your%20Own%20Server)%20Next.js%2C%20TRMNL%20server%20with%20local%20recipe%20rendering%20and%20cloud%20proxy%20support.&demo-url=https%3A%2F%2Fbyos-next-demo.vercel.app&demo-image=https%3A%2F%2Fusetrmnl.com%2Fimages%2Fbrand%2Ficons%2Ficon--brand.svg&products=%5B%7B%22type%22%3A%22integration%22%2C%22integrationSlug%22%3A%22neon%22%2C%22productSlug%22%3A%22neon%22%2C%22protocol%22%3A%22storage%22%2C%22group%22%3A%22postgres%22%7D%5D>)
 
 ### ✨ Features
+
 - Device management UI with MAC/API key registration, status tracking, and refresh scheduling.
 - Playlist-based screen rotation with time and weekday rules, custom durations, and per-device assignment.
 - On-demand screen rendering to 1-bit BMP via Takumi/Satori with caching and revalidation.
@@ -25,6 +55,7 @@
 - Docker Compose for app + Postgres; deploy-ready Vercel button with Supabase/Neon integration.
 
 ## Table of Contents
+
 - [BYOS Next.js for TRMNL 🖥️](#byos-nextjs-for-trmnl-️)
   - [🚀 Overview](#-overview)
     - [✨ Features](#-features)
@@ -46,6 +77,7 @@
   - [License](#license)
 
 ## Highlights
+
 - Dynamic BMP generation with Next.js 16, React 19, Tailwind CSS v4, and TypeScript.
 - Supabase-backed device management, logging, and playlist scheduling.
 - No-DB fallback mode for quickly previewing screens without a database.
@@ -54,6 +86,7 @@
 - Clean codebase with Biome linting and formatting.
 
 ## Demo & Screens
+
 - Live demo: [https://byos-next-demo.vercel.app](https://byos-next-demo.vercel.app)
 - Overview UI: `public/byos-nextjs-overview.png`
 - Device UI: `public/byos-nextjs-device.png`
@@ -61,6 +94,7 @@
 ## Quickstart
 
 ### Deploy to Vercel
+
 1. Click the Vercel button above.
 2. Link a Supabase or Neon project when prompted.
 3. Deploy, then open the app and initialize tables.
@@ -68,6 +102,7 @@
 5. Sync environment variables locally via `vercel link` and `vercel env pull` if you also develop on your machine.
 
 ### Run with Docker Compose (app + Postgres)
+
 ```bash
 export POSTGRES_PASSWORD=your_password
 docker-compose up -d
@@ -75,6 +110,7 @@ docker-compose up -d
 ```
 
 ### Run Locally
+
 ```bash
 git clone https://github.com/usetrmnl/byos_next
 cd byos_next
@@ -82,28 +118,34 @@ pnpm install
 ```
 
 Start the dev server:
+
 ```bash
 pnpm dev
 ```
 
 Format/lint:
+
 ```bash
 pnpm lint
 ```
 
 ## Environment
+
 Create `.env.local` with the keys you need. Common variables:
+
 ```
 DATABASE_URL
 POSTGRES_PASSWORD
 ```
 
 ### Database Options
+
 - **Supabase or Neon:** run migrations in `migrations/` in order to create tables and playlist support.
 - **Docker/Postgres:** set `POSTGRES_PASSWORD`, run `docker-compose up -d`.
 - **No-DB mode:** run `pnpm dev` without DB env vars to preview screens only (device management disabled).
 
 ## Project Structure
+
 - `app/` - Next.js routes and screens (including `/recipes`).
 - `components/` - UI components.
 - `migrations/` - SQL migrations for Postgres.
@@ -112,12 +154,15 @@ POSTGRES_PASSWORD
 - `docs/api.md` - HTTP API reference.
 
 ## Playlists
+
 - Schedule screens by time and weekday with custom durations.
 - Assign playlists to devices to rotate content automatically.
 - Enable playlist mode per device in the UI.
 
 ## Recipes
+
 Visit `/recipes` to browse screens and compare direct vs. bitmap rendering. To add one:
+
 1. Create a folder under `app/recipes/screens`.
 2. Add your component and data fetching logic.
 3. Register it in `app/recipes/screens.json`.
@@ -125,19 +170,25 @@ Visit `/recipes` to browse screens and compare direct vs. bitmap rendering. To a
 See `docs/recipes.md` for more detail.
 
 ## Documentation
+
 - API endpoints and payloads: `docs/api.md`
 - Recipes reference: `app/recipes/README.md`
 - Contributing guide: `CONTRIBUTING.md`
 
 ## Roadmap
+
 - Better recipe management system
 - Compatibility with TRMNL recipes
 
 ## Support & Feedback
+
 - GitHub Issues: https://github.com/usetrmnl/byos_next/issues
 - Discussions: https://github.com/usetrmnl/byos_next/discussions
 - Email: manglekuo@gmail.com
 - TRMNL Discord: reply to the maintainer thread.
 
 ## License
+
 MIT - see `LICENSE`.
+
+</details>
