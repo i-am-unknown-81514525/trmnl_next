@@ -399,11 +399,11 @@ async function getArrivalDepartureData(airport_code: string): Promise<{
   const arrival_data: FR24AirportResult = await arrival_response.json();
   const departure_data: FR24AirportResult = await departure_response.json();
   const arrival_inner: FR24AirportDataArrivals = <FR24AirportDataArrivals>(
-    arrival_data?.result?.response?.airport.pluginData
+    arrival_data?.result?.response?.airport.pluginData.schedule
   );
   const departure_inner: FR24AirportDataDepartures = <
     FR24AirportDataDepartures
-  >departure_data.result.response.airport.pluginData;
+  >departure_data.result.response.airport.pluginData.schedule;
   return {
     departures: departure_inner.departures.data ?? [],
     arrivals: arrival_inner.arrivals.data ?? [],
@@ -669,6 +669,7 @@ export default async function getData({
       airport.departures = board.departures;
       airport.arrivals = board.arrivals;
     } catch (e) {
+      console.log(e);
       // ignore
     }
     kind = { kind: "static_airport", airport: airport };

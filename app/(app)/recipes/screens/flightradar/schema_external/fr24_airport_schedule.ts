@@ -63,7 +63,11 @@ export interface FR24AircraftImgData {
 }
 
 export interface FR24AirportResp {
-  airport: { pluginData: FR24AirportDataDepartures | FR24AirportDataArrivals };
+  airport: {
+    pluginData: {
+      schedule: FR24AirportDataDepartures | FR24AirportDataArrivals;
+    };
+  };
   airlines: FR24AirlinesData;
   aircraftImages: FR24AircraftImgData[];
 }
