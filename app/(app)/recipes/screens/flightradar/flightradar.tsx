@@ -358,8 +358,8 @@ export default async function FlightRadar(
           callsign: x.flight.identification?.callsign || null,
           airline: x.flight.airline?.short || x.flight.airline?.name || null,
           alt_loc:
-            x.flight.airport?.real?.name ||
-            x.flight.airport?.destination.name ||
+            x.flight.airport?.real?.code?.iata ||
+            x.flight.airport?.destination?.code?.iata ||
             null,
           kind: "departure",
           accuracy: x.flight.time.real.departure
@@ -379,10 +379,7 @@ export default async function FlightRadar(
             null,
           callsign: x.flight.identification?.callsign || null,
           airline: x.flight.airline?.short || x.flight.airline?.name || null,
-          alt_loc:
-            x.flight.airport?.real?.name ||
-            x.flight.airport?.origin.name ||
-            null,
+          alt_loc: x.flight.airport?.origin?.code?.iata || null,
           kind: "arrival",
           accuracy: x.flight.time.real.arrival
             ? "real"
@@ -412,29 +409,62 @@ export default async function FlightRadar(
       }
 
       return (
-        <div
-          style={{
-            ...containerStyle,
-            fontWeight: 900,
-            fontSize: 16,
-            alignItems: "center",
-            textAlign: "center",
-          }}
-        >
-          <table>
+        <div>
+          <ul
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 4,
+              height: "100%",
+              overflow: "hidden",
+              padding: 0,
+              margin: 0,
+              listStyle: "none",
+            }}
+          >
             {combined.map((n, i) => {
               return (
-                <tr>
-                  <td>{n.callsign || "N/A"}</td>
-                  <td>{n.airline || "N/A"}</td>
-                  <td>{capitalizeWords(n.kind)}</td>
-                  <td>{capitalizeWords(n.accuracy)}</td>
-                  <td>{formatter.format(new Date(n.time * 1000))}</td>
-                  <td>{n.alt_loc || "N/A"}</td>
-                </tr>
+                <li
+                  key={i}
+                  style={{
+                    padding: "2px 2px",
+                    borderBottom: "1px solid #ffffff",
+                    background: "#fff",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                  }}
+                >
+                  <div
+                    style={{
+                      ...containerStyle,
+                      fontWeight: 900,
+                      fontSize: 16,
+                      alignItems: "start",
+                      textAlign: "left",
+                    }}
+                  >
+                    {n.callsign || "N/A"}
+                    {" - "}
+                    {/*<td>{n.airline || "N/A"}</td>*/}
+
+                    {capitalizeWords(n.kind)[0]}
+                    {"."}
+
+                    {" - "}
+
+                    {capitalizeWords(n.accuracy)[0]}
+                    {"."}
+
+                    {" - "}
+                    {formatter.format(new Date(n.time * 1000))}
+                    {" - "}
+                    {n.alt_loc || "N/A"}
+                  </div>
+                </li>
               );
             })}
-          </table>
+          </ul>
         </div>
       );
     }
