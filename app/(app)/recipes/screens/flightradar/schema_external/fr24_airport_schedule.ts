@@ -7,7 +7,7 @@ import type {
   Airport,
   Thumbnail,
 } from "./fr24_flightplayback";
-import type { TimeData } from "./fr24_flight_list";
+import type { FullTimeData, TimeData } from "./fr24_flight_list";
 
 export interface FR24AirportListFlightResult {
   flight: {
@@ -25,7 +25,7 @@ export interface FR24AirportListFlightResult {
       destination: Airport;
       real: Airport | null; // diversion
     };
-    time: TimeData;
+    time: FullTimeData;
   };
 }
 
