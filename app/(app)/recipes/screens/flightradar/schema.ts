@@ -1,116 +1,116 @@
 import type { FullTimeData } from "./schema_external/fr24_flight_list";
 import type {
-  Navaid,
-  Runway,
-  AirportExtended,
+	Navaid,
+	Runway,
+	AirportExtended,
 } from "./schema_external/scraped_data";
 import type { TopoOrGeo } from "./map";
 import type { FR24AirportListFlightResult } from "./schema_external/fr24_airport_schedule";
 
 export interface Location {
-  lat: number;
-  long: number;
+	lat: number;
+	long: number;
 }
 
 export interface FlightLocation {
-  loc: Location;
-  track: number;
-  alt: number;
-  speed: number;
+	loc: Location;
+	track: number;
+	alt: number;
+	speed: number;
 }
 
 export interface PartialFlightLocation {
-  loc: Location;
-  track: number | null;
-  alt: number | null;
-  speed: number | null;
+	loc: Location;
+	track: number | null;
+	alt: number | null;
+	speed: number | null;
 }
 
 export interface FlightID {
-  hex: string;
-  callsign: string;
-  fr24_hex8: string | null;
-  reg: string | null;
+	hex: string;
+	callsign: string;
+	fr24_hex8: string | null;
+	reg: string | null;
 }
 
 export interface ForeignFlightData {
-  id: FlightID;
-  loc: FlightLocation | PartialFlightLocation;
-  squawk: string | null;
+	id: FlightID;
+	loc: FlightLocation | PartialFlightLocation;
+	squawk: string | null;
 }
 
 export interface Trail {
-  timestamp: number;
-  loc: FlightLocation;
-  squawk: string | null;
+	timestamp: number;
+	loc: FlightLocation;
+	squawk: string | null;
 }
 
 export enum DepartureKind {
-  Scheduled = 0,
-  Departed = 1,
-  Diverted = 2,
-  Arrived = 3,
+	Scheduled = 0,
+	Departed = 1,
+	Diverted = 2,
+	Arrived = 3,
 }
 
 export interface FlightMetadata {
-  src: Airport | null;
-  dest: Airport | null;
-  real: Airport | null;
-  time_data: FullTimeData | null;
-  status: DepartureKind | null;
+	src: Airport | null;
+	dest: Airport | null;
+	real: Airport | null;
+	time_data: FullTimeData | null;
+	status: DepartureKind | null;
 }
 
 export interface FlightData {
-  id: FlightID;
-  trails: Trail[];
-  metadata: FlightMetadata | null;
-  curr: Trail;
+	id: FlightID;
+	trails: Trail[];
+	metadata: FlightMetadata | null;
+	curr: Trail;
 }
 
 export interface Airport {
-  code: string;
-  name: string;
-  loc: Location;
-  departures?: FR24AirportListFlightResult[];
-  arrivals?: FR24AirportListFlightResult[];
+	code: string;
+	name: string;
+	loc: Location;
+	departures?: FR24AirportListFlightResult[];
+	arrivals?: FR24AirportListFlightResult[];
 }
 
 export type TrackingKind =
-  | { kind: "static_location"; location: Location }
-  | { kind: "static_airport"; airport: Airport }
-  | { kind: "flight"; flight: FlightData };
+	| { kind: "static_location"; location: Location }
+	| { kind: "static_airport"; airport: Airport }
+	| { kind: "flight"; flight: FlightData };
 
 export interface ForeignFlightDataDisplayParameter {
-  display_icon: boolean;
-  display_label: boolean;
-  require_zoom: number; // zoom level must be >= require_zoom to display
+	display_icon: boolean;
+	display_label: boolean;
+	require_zoom: number; // zoom level must be >= require_zoom to display
 }
 
 export interface ForeignFlightDataDisplay {
-  flight: ForeignFlightData;
-  parameter: ForeignFlightDataDisplayParameter;
+	flight: ForeignFlightData;
+	parameter: ForeignFlightDataDisplayParameter;
 }
 
 export interface EnvironmentOverlays {
-  runways: Runway[];
-  navaids: Navaid[];
-  airports: AirportExtended[];
+	runways: Runway[];
+	navaids: Navaid[];
+	airports: AirportExtended[];
 }
 
 export interface BoundingBox {
-  min: Location;
-  max: Location;
+	min: Location;
+	max: Location;
 }
 
 export interface DisplayData {
-  tracking: TrackingKind;
-  center_loc: Location;
-  nearby: ForeignFlightDataDisplay[];
-  overlays: EnvironmentOverlays;
-  bound: BoundingBox;
-  // numeric zoom used to compute `bound` (higher = closer)
-  zoom?: number;
-  visual_bearing: number;
-  forward_ratio: number;
-  land_geo: TopoOrGeo;
+	tracking: TrackingKind;
+	center_loc: Location;
+	nearby: ForeignFlightDataDisplay[];
+	overlays: EnvironmentOverlays;
+	bound: BoundingBox;
+	// numeric zoom used to compute `bound` (higher = closer)
+	zoom?: number;
+	visual_bearing: number;
+	forward_ratio: number;
+	land_geo: TopoOrGeo;
 }

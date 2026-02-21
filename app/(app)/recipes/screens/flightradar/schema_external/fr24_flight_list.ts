@@ -2,21 +2,21 @@
 // so only the specific helpful data is listed in schema.
 
 export interface TimeData {
-  departure: number | null;
-  arrival: number | null;
+	departure: number | null;
+	arrival: number | null;
 }
 
 export interface OtherTimeData {
-  eta: number | null;
-  updated: number | null;
-  duration: number | null;
+	eta: number | null;
+	updated: number | null;
+	duration: number | null;
 }
 
 export interface FullTimeData {
-  scheduled: TimeData;
-  real: TimeData;
-  estimated: TimeData;
-  other: OtherTimeData;
+	scheduled: TimeData;
+	real: TimeData;
+	estimated: TimeData;
+	other: OtherTimeData;
 }
 
 // data.result.response.data[0]?.time
