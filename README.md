@@ -29,6 +29,9 @@ This require at least 4 greyscale level (It wouldn't render correctly with only 
 
 I hope this part of code never get used:
 
+<img width="872" height="378" alt="image" src="https://github.com/user-attachments/assets/de6aa694-652b-46cd-ab59-d5ffd9bac2ee" />
+
+
 <details>
 <summary>Oroginal README</summary>
 
