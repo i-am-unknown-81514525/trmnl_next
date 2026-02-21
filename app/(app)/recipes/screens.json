@@ -205,7 +205,7 @@
 				"type": "string",
 				"label": "Location Parameter",
 				"description": "Location Parameter: (loc:lat,long,zoom, airport:code,zoom, flight:callsign,hex)",
-				"default": "flight:AAL280,3e6a051b"
+				"default": "flight:BCS638,3e6cc8ac"
 			}
 		},
 		"tags": ["flight", "api", "live-data", "configurable"],

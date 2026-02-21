@@ -160,7 +160,13 @@ export default async function FlightRadar(
 	if (data.tracking.kind === "flight") {
 		flightLoc = data.tracking.flight.curr.loc;
 	}
+	// format nearby list
+	const nearbyItems = data.nearby || [];
 
+	const filteredNearby = nearbyItems.filter(x=>
+		data.tracking.kind !== "flight" ||
+		x.flight.id.callsign !== data.tracking.flight.id.callsign
+	)
 	// render map image server-side
 	let mapImg: string | null = null;
 	try {
@@ -178,7 +184,7 @@ export default async function FlightRadar(
 			// show the central aircraft glyph when we're tracking a flight so the
 			// map isn't empty even if no topo/land geometry is available.
 			showAircraft: data.tracking.kind === "flight",
-			nearby: data.nearby,
+			nearby: filteredNearby,
 			centerTrail:
 				data.tracking.kind === "flight"
 					? data.tracking.flight.trails
@@ -189,11 +195,10 @@ export default async function FlightRadar(
 		mapImg = null;
 	}
 
-	// format nearby list
-	const nearbyItems = data.nearby || [];
+
 
 	// sort nearby: moving (>25 kt) first, then by distance (km) ascending
-	const sortedNearby = [...nearbyItems].sort((a, b) => {
+	const sortedNearby = [...filteredNearby].sort((a, b) => {
 		const aSpeed = a.flight.loc.speed ?? 0;
 		const bSpeed = b.flight.loc.speed ?? 0;
 		const aMoving = aSpeed > 25 ? 1 : 0;
@@ -266,20 +271,45 @@ export default async function FlightRadar(
 			marginTop: 6,
 		};
 
+		const formatter = new Intl.DateTimeFormat('en-GB', {
+			hour: '2-digit',
+			minute: '2-digit',
+			hour12: false
+		});
+
 		if (data.tracking.kind === "flight") {
 			const md = data.tracking.flight.metadata;
+			let content = "";
+			if (md?.time_data?.real.departure) {
+				content += "Departure - " + formatter.format(new Date(md.time_data.real.departure * 1000));
+			} else if (md?.time_data?.estimated.departure) {
+				content += "Est. Depart - " + formatter.format(new Date(md.time_data.estimated.departure * 1000));
+			} else if (md?.time_data?.scheduled.departure) {
+				content += "Scheduled - " + formatter.format(new Date(md.time_data.scheduled.departure * 1000));
+			} else {
+				content += "Departure - N/A";
+			}
+			content += "\n";
+			if (md?.time_data?.real.arrival) {
+				content += "Arrival - " + formatter.format(new Date(md.time_data.real.arrival * 1000));
+			} else if (md?.time_data?.estimated.arrival) {
+				content += "Est. Arrival - " + formatter.format(new Date(md?.time_data.estimated.arrival * 1000));
+			} else if (md?.time_data?.scheduled.arrival) {
+				content += "Sch. Arrival - " + formatter.format(new Date(md?.time_data.scheduled.arrival * 1000));
+			} else {
+				content += "Arrival - N/A";
+			}
+
 			return (
 				<div style={containerStyle}>
-					<h3 style={titleStyle}>Flight Details</h3>
-					<div style={{ fontSize: 14 }}>
-						Callsign: {data.tracking.flight.id.callsign}
+					<div style={{fontWeight: 900, fontSize: 16 }}>
+						Callsign: {data.tracking.flight.id.callsign} Hex: {data.tracking.flight.id.hex}
 					</div>
-					<div style={{ fontSize: 14 }}>Hex: {data.tracking.flight.id.hex}</div>
-					<div style={smallMuted}>
-						Est: {md?.time_data ? JSON.stringify(md.time_data) : "N/A"}
+					<div style={{fontWeight: 900, fontSize: 16}}>
+						{content}
 					</div>
-					<div style={smallMuted}>
-						Src: {md?.src?.code ?? "N/A"} Dest: {md?.dest?.code ?? "N/A"}
+					<div style={{fontWeight: 900, fontSize: 16}}>
+						Src: {md?.src?.code ?? "N/A"} - Dest: {md?.dest?.code ?? "N/A"}
 					</div>
 				</div>
 			);
@@ -384,7 +414,7 @@ export default async function FlightRadar(
 											style={{
 												width: "100%",
 												height: "100%",
-												maxWidth: "500px",
+												maxWidth: "300px",
 												objectFit: "contain",
 												filter: "grayscale(100%) contrast(0.95) brightness(1)",
 											}}
@@ -399,9 +429,9 @@ export default async function FlightRadar(
 									flex: 1,
 									border: "1px solid #ffffff",
 									borderRadius: 6,
-									padding: 12,
+									padding: 0,
 									boxSizing: "border-box",
-									height: 150,
+									height: 180,
 								}}
 							>
 								<Details />
@@ -476,8 +506,7 @@ export default async function FlightRadar(
 														fontWeight: 900,
 													}}
 												>
-													{Math.round(alt)} m · {Math.round(speed)} kt ·{" "}
-													{Math.round(track)}°
+													{Math.round(alt)} m - {Math.round(speed)} kt - {Math.round(track)}°
 												</div>
 											</div>
 											<div
