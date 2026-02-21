@@ -41,6 +41,7 @@ export interface ForeignFlightData {
 export interface Trail {
   timestamp: number;
   loc: FlightLocation;
+  squawk: string | null;
 }
 
 export enum DepartureKind {

@@ -233,6 +233,7 @@ async function getTrailADSBExchange(id: FlightID): Promise<Trail[]> {
   let prev_loc: Location | null = null;
   let prev_speed: number | null = null;
   let prev_track: number | null = null;
+  let prev_squawk: string | null = null;
   for (const dt of result.trace) {
     if (dt[1] !== null && dt[2] !== null) {
       prev_loc = <Location>{ lat: dt[1], long: dt[2] };
@@ -251,6 +252,14 @@ async function getTrailADSBExchange(id: FlightID): Promise<Trail[]> {
       break;
     }
   }
+  for (const dt of result.trace) {
+    // @ts-ignore
+    if (dt[8]?.squawk || null !== null) {
+      // @ts-ignore
+      prev_squawk = dt[8]?.squawk;
+      break;
+    }
+  }
   const max_timedelta = result.trace
     .map((x) => x[0])
     .reduce((prev, current) => (prev > current ? prev : current), 0);
@@ -265,6 +274,12 @@ async function getTrailADSBExchange(id: FlightID): Promise<Trail[]> {
     }
     if (dt[4] !== null) prev_speed = dt[4];
     if (dt[5] !== null) prev_track = dt[5];
+    // @ts-ignore
+    if (dt[8]?.squawk || null !== null) {
+      // @ts-ignore
+      prev_squawk = dt[8]?.squawk;
+      break;
+    }
     arr.push({
       timestamp: dt[0] + base_time,
       loc: {
@@ -273,6 +288,7 @@ async function getTrailADSBExchange(id: FlightID): Promise<Trail[]> {
         speed: prev_speed,
         track: prev_track,
       },
+      squawk: prev_squawk,
     });
   }
   return arr;
@@ -294,6 +310,7 @@ function extractTrailFR24(data: FR24PlaybackResult): Trail[] {
         speed: track.speed.kts,
         track: track.heading,
       },
+      squawk: track.squawk,
     };
   });
 }

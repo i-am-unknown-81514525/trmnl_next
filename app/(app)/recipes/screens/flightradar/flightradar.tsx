@@ -311,8 +311,19 @@ export default async function FlightRadar(
         content += "Arrival - N/A";
       }
 
-      const coord = `${data.tracking.flight.curr.loc.loc.lat.toFixed(4)}, ${data.tracking.flight.curr.loc.loc.long.toFixed(4)}`;
-      const attr = `${data.tracking.flight.curr.loc.speed} kt - ${data.tracking.flight.curr.loc.alt} ft - ${data.tracking.flight.curr.loc.track}°`;
+      const coord = `${data.tracking.flight.curr.loc.loc.lat.toFixed(4)}, ${data.tracking.flight.curr.loc.loc.long.toFixed(4)} - Squawk: ${data.tracking.flight.curr.squawk || "N/A"}`;
+      let attr = `${data.tracking.flight.curr.loc.speed} kt - ${data.tracking.flight.curr.loc.alt} ft - ${data.tracking.flight.curr.loc.track}°`;
+
+      if (data.tracking.flight.curr.squawk === "7500") {
+        attr += " - HIJACK";
+      } else if (
+        data.tracking.flight.curr.squawk === "7600" ||
+        data.tracking.flight.curr.squawk === "7601"
+      ) {
+        attr += " - RADIO FAIL";
+      } else if (data.tracking.flight.curr.squawk === "7700") {
+        attr += " - EMERGENCY";
+      }
 
       return (
         <div style={containerStyle}>
