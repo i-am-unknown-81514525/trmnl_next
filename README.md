@@ -23,7 +23,7 @@ This require at least 4 greyscale level (It wouldn't render correctly with only 
 - `test/` decoding test
 - `utils/render-bmp.ts` greyscale patch 3
 
-<detaiils>
+<details>
 <summary>Oroginal README</summary>
 
 # BYOS Next.js for TRMNL 🖥️
