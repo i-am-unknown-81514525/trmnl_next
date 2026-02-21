@@ -23,6 +23,11 @@ This require at least 4 greyscale level (It wouldn't render correctly with only 
 - `test/` decoding test
 - `utils/render-bmp.ts` greyscale patch 3
 
+<img width="1692" height="1038" alt="image" src="https://github.com/user-attachments/assets/75061be3-0d30-46bf-8fe6-88ea56ac53d1" />
+
+<img width="1692" height="1014" alt="image" src="https://github.com/user-attachments/assets/3019fa31-8165-4e65-bb9c-c0063638ef27" />
+
+
 <details>
 <summary>Oroginal README</summary>
 
