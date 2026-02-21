@@ -36,6 +36,7 @@ export interface FlightID {
 export interface ForeignFlightData {
   id: FlightID;
   loc: FlightLocation | PartialFlightLocation;
+  squawk: string | null;
 }
 
 export interface Trail {
