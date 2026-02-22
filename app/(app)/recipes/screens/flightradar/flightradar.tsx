@@ -403,7 +403,7 @@ export default async function FlightRadar(
                 : null,
         })) || [];
       const arrival_flight: DisplayFlight[] =
-        data.tracking.airport.departures?.map((x) => ({
+        data.tracking.airport.arrivals?.map((x) => ({
           time:
             x.flight.time.real.arrival ||
             x.flight.time.estimated.arrival ||
@@ -430,8 +430,7 @@ export default async function FlightRadar(
         .filter(
           (x) =>
             x.time && x.time >= curr && x.accuracy && x.accuracy !== "real",
-        ) // filter happened event
-        // @ts-ignore the filter prevented time to bu nullable
+        ) // @ts-ignore the filter prevented time to bu nullable
         .toSorted((a, b) => a.time - b.time);
       function capitalizeWords(string: string): string {
         return string
