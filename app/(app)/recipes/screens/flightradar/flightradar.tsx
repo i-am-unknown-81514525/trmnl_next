@@ -332,8 +332,13 @@ export default async function FlightRadar(
             {data.tracking.flight.id.hex}
           </div>
           <div style={{ fontWeight: 900, fontSize: 20 }}>
-            {md?.src?.code ?? "N/A"} {!md?.real ? " → " : "↛"}{" "}
-            {md?.dest?.code ?? "N/A"} {md?.real ? ` → ${md.real.code}` : ""}
+            {md?.src?.code ?? "N/A"}{" "}
+            {
+              // !md?.real ? " → " : "⇻"
+              " → "
+            }{" "}
+            {(md?.real?.code || md?.dest?.code) ?? "N/A"}{" "}
+            {md?.real ? `( ↛ Sch. Dest: ${md?.dest?.code ?? "N/A"})` : ""}
           </div>
           <div style={{ fontWeight: 900, fontSize: 18 }}>{content}</div>
           <div style={{ fontWeight: 900, fontSize: 18 }}>{coord}</div>
