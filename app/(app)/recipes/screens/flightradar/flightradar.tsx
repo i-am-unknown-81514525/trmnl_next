@@ -381,7 +381,13 @@ export default async function FlightRadar(
             x.flight.time.estimated.departure ||
             x.flight.time.scheduled.departure ||
             null,
-          callsign: x.flight.identification?.callsign || null,
+          callsign:
+            x.flight.identification?.callsign ||
+            x.flight.identification?.number?.default ||
+            (x.flight.identification?.codeshare
+              ? x.flight.identification.codeshare[0]
+              : null) ||
+            null,
           airline: x.flight.airline?.short || x.flight.airline?.name || null,
           alt_loc:
             x.flight.airport?.real?.code?.iata ||
