@@ -10,7 +10,8 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-test_password_please_change}
       - POSTGRES_DB=byos_db
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - ./postgres_data:/var/lib/postgresql/data
+      - ./migrations:/docker-entrypoint-initdb.d:ro
     networks:
       - byos_network
     healthcheck:
