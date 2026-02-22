@@ -91,4 +91,6 @@ temp/
 
 # Backup files
 *.bak
-*.backup 
+*.backup
+
+postgres_data/
