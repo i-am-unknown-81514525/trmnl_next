@@ -36,8 +36,10 @@ AUTH_ENABLED=false
 ```
 
 3. Run `docker compose up -d` (Assuming you have [docker](https://docs.docker.com/get-started/get-docker/) with docker compose)
-4. Go to `http://localhost:3000` (Assuming you are hosting and browsing on the same device)
-5. Login with the same email as set in `ADMIN_EMAIL`, and get the verify link in the log with `docker compose logs -f -n 2000`
+4. Go to `http://localhost:3000/recipes/flightradar` (Assuming you are hosting and browsing on the same device) (Apparently firefox doesn't render the bmp properly, but chromium browser do)
+<!-- 5. Login with the same email as set in `ADMIN_EMAIL`, and get the verify link in the log with `docker compose logs -f -n 2000` -->
+
+Sorry for this being really scuffed because I was expecting the base layer behave properly, but neither the auth layer with docker, database with docker work out of the box and some other stuff require patching, which I failed to patch the auth layer and the bmp stuff fully.
 
 <img width="1692" height="1038" alt="image" src="https://github.com/user-attachments/assets/75061be3-0d30-46bf-8fe6-88ea56ac53d1" />
 
