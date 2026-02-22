@@ -18,6 +18,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    env_file:
+      - .env
 
   byos-next:
     build:
@@ -33,6 +35,8 @@ services:
     restart: unless-stopped
     networks:
       - byos_network
+    env_file:
+      - .env
 
 volumes:
   postgres_data:
