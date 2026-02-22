@@ -240,7 +240,8 @@ async function getTrailADSBExchange(id: FlightID): Promise<Trail[]> {
 	let prev_loc: Location | null = null;
 	let prev_speed: number | null = null;
 	let prev_track: number | null = null;
-	let prev_squawk: string | null = null;
+  let prev_squawk: string | null = null;
+  let prev_vspeed: number | null = null;
 	for (const dt of result.trace) {
 		if (dt[1] !== null && dt[2] !== null) {
 			prev_loc = <Location>{ lat: dt[1], long: dt[2] };
@@ -266,6 +267,12 @@ async function getTrailADSBExchange(id: FlightID): Promise<Trail[]> {
 			prev_squawk = dt[8]?.squawk;
 			break;
 		}
+  }
+  for (const dt of result.trace) {
+		if (dt[7] !== null) {
+			prev_vspeed = dt[7];
+			break;
+		}
 	}
 	const max_timedelta = result.trace
 		.map((x) => x[0])
@@ -273,14 +280,15 @@ async function getTrailADSBExchange(id: FlightID): Promise<Trail[]> {
 	const base_time = result.timestamp - max_timedelta;
 	if (prev_loc === null) return [];
 	if (prev_speed === null) return [];
-	if (prev_track === null) return [];
+  if (prev_track === null) return [];
 	let arr: Trail[] = [];
 	for (const dt of result.trace) {
 		if (dt[1] !== null && dt[2] !== null) {
 			prev_loc = <Location>{ lat: dt[1], long: dt[2] };
 		}
 		if (dt[4] !== null) prev_speed = dt[4];
-		if (dt[5] !== null) prev_track = dt[5];
+    if (dt[5] !== null) prev_track = dt[5];
+		if (dt[7] !== null) prev_vspeed = dt[7];
 		// @ts-ignore
 		if (dt[8]?.squawk || null !== null) {
 			// @ts-ignore
@@ -293,7 +301,8 @@ async function getTrailADSBExchange(id: FlightID): Promise<Trail[]> {
 				loc: <Location>prev_loc,
 				alt: dt[3] === "ground" ? 0 : dt[3],
 				speed: prev_speed,
-				track: prev_track,
+        track: prev_track,
+        vspeed: prev_vspeed
 			},
 			squawk: prev_squawk,
 		});
@@ -315,7 +324,8 @@ function extractTrailFR24(data: FR24PlaybackResult): Trail[] {
 				},
 				alt: track.altitude.feet,
 				speed: track.speed.kts,
-				track: track.heading,
+        track: track.heading,
+        vspeed: track.verticalSpeed.fpm,
 			},
 			squawk: track.squawk,
 		};

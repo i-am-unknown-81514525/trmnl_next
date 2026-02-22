@@ -16,7 +16,8 @@ export interface FlightLocation {
 	loc: Location;
 	track: number;
 	alt: number;
-	speed: number;
+  speed: number;
+  vspeed: number | null;
 }
 
 export interface PartialFlightLocation {

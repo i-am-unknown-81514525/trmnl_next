@@ -156,6 +156,7 @@ export default async function FlightRadar(
     track: 0,
     alt: 0,
     speed: 0,
+    vspeed: 0,
   };
   if (data.tracking.kind === "flight") {
     flightLoc = data.tracking.flight.curr.loc;
