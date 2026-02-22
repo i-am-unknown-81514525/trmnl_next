@@ -336,11 +336,11 @@ export default async function FlightRadar(
 
       return (
         <div style={containerStyle}>
-          <div style={{ fontWeight: 900, fontSize: 20 }}>
+          <div style={{ fontWeight: 900, fontSize: 22 }}>
             Callsign: {data.tracking.flight.id.callsign} Hex:{" "}
             {data.tracking.flight.id.hex}
           </div>
-          <div style={{ fontWeight: 900, fontSize: 20 }}>
+          <div style={{ fontWeight: 900, fontSize: 22 }}>
             {md?.src?.code ?? "N/A"}{" "}
             {
               // !md?.real ? " → " : "⇻"
@@ -349,9 +349,9 @@ export default async function FlightRadar(
             {(md?.real?.code || md?.dest?.code) ?? "N/A"}{" "}
             {md?.real ? `( ↛ Sch. Dest: ${md?.dest?.code ?? "N/A"})` : ""}
           </div>
-          <div style={{ fontWeight: 900, fontSize: 18 }}>{content}</div>
-          <div style={{ fontWeight: 900, fontSize: 18 }}>{coord}</div>
-          <div style={{ fontWeight: 900, fontSize: 18 }}>{attr}</div>
+          <div style={{ fontWeight: 900, fontSize: 20 }}>{content}</div>
+          <div style={{ fontWeight: 900, fontSize: 20 }}>{coord}</div>
+          <div style={{ fontWeight: 900, fontSize: 20 }}>{attr}</div>
         </div>
       );
     }
@@ -506,15 +506,15 @@ export default async function FlightRadar(
           display: "flex",
           alignItems: "stretch",
           justifyContent: "center",
-          padding: 8,
+          padding: 0,
         }}
       >
         <div
           style={{
             width: "100%",
             height: "100%",
-            border: "16px solid #000",
-            borderRadius: 10,
+            border: "0px solid #000",
+            borderRadius: 0,
             overflow: "hidden",
             background: "#fff",
             boxSizing: "border-box",
@@ -525,8 +525,8 @@ export default async function FlightRadar(
               width: "100%",
               height: "100%",
               display: "flex",
-              padding: 16,
-              gap: 16,
+              padding: 0,
+              gap: 0,
               backgroundColor: "#ffffff",
               color: "#000000",
             }}
@@ -536,10 +536,10 @@ export default async function FlightRadar(
               style={{
                 width: 360,
                 minWidth: 320,
-                maxWidth: 480,
+                maxWidth: 400,
                 display: "flex",
                 flexDirection: "column",
-                gap: 8,
+                gap: 0,
               }}
             >
               <div
@@ -550,9 +550,10 @@ export default async function FlightRadar(
                   alignItems: "center",
                   justifyContent: "center",
                   background: "#ffffff",
-                  border: "1px solid #ffffff",
-                  borderRadius: 6,
+                  border: "0px solid #ffffff",
+                  borderRadius: 0,
                   overflow: "hidden",
+                  padding: 8,
                 }}
               >
                 {mapImg ? (
@@ -579,11 +580,12 @@ export default async function FlightRadar(
               <div
                 style={{
                   flex: 1,
-                  border: "1px solid #ffffff",
-                  borderRadius: 6,
+                  border: "0px solid #ffffff",
+                  borderRadius: 0,
                   padding: 0,
                   boxSizing: "border-box",
                   height: 180,
+                  paddingLeft: 8,
                 }}
               >
                 <Details />
@@ -594,9 +596,12 @@ export default async function FlightRadar(
             <div
               style={{
                 flex: 1,
-                paddingLeft: 8,
+                paddingLeft: 0,
                 boxSizing: "border-box",
                 height: "100%",
+                minWidth: 400,
+                maxWidth: 480,
+                width: "100%",
                 borderRight: "1px solid #000",
                 display: "flex",
                 flexDirection: "column",
@@ -607,7 +612,7 @@ export default async function FlightRadar(
                 style={{
                   display: "flex",
                   flexDirection: "column",
-                  gap: 12,
+                  gap: 4,
                   height: "100%",
                   overflow: "hidden",
                   padding: 0,
@@ -632,7 +637,7 @@ export default async function FlightRadar(
                     <li
                       key={i}
                       style={{
-                        padding: "12px 14px",
+                        padding: "4px 4px",
                         borderBottom: "1px solid #ffffff",
                         background: "#fff",
                         display: "flex",
@@ -644,8 +649,8 @@ export default async function FlightRadar(
                         style={{
                           display: "flex",
                           flexDirection: "column",
-                          gap: 6,
-                          minWidth: 150,
+                          gap: 2,
+                          minWidth: 200,
                         }}
                       >
                         <div style={{ fontSize: 22, fontWeight: 900 }}>
@@ -668,7 +673,7 @@ export default async function FlightRadar(
                           textAlign: "right",
                           display: "flex",
                           flexDirection: "column",
-                          minWidth: 150,
+                          minWidth: 140,
                         }}
                       >
                         <div
