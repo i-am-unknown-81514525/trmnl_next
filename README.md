@@ -23,6 +23,13 @@ This require at least 4 greyscale level (It wouldn't render correctly with only 
 - `test/` decoding test
 - `utils/render-bmp.ts` greyscale patch 3
 
+### How to run:
+
+1. Clone the repo (obviously)
+2. Create a `.env` file with `POSTGRES_PASSWORD`
+3. Run `docker compose up -d` (Assuming you have [docker](https://docs.docker.com/get-started/get-docker/) with docker compose)
+4. Go to `http://localhost:3000` (Assuming you are hosting and browsing on the same device)
+
 <img width="1692" height="1038" alt="image" src="https://github.com/user-attachments/assets/75061be3-0d30-46bf-8fe6-88ea56ac53d1" />
 
 <img width="1692" height="1014" alt="image" src="https://github.com/user-attachments/assets/3019fa31-8165-4e65-bb9c-c0063638ef27" />
@@ -33,7 +40,6 @@ Updated UI:
 
 <img width="1468" height="910" alt="image" src="https://github.com/user-attachments/assets/31dbc61b-5c21-4c23-941a-2845aa552645" />
 
-
 Support for diverted plane:
 
 <img width="1492" height="924" alt="image" src="https://github.com/user-attachments/assets/8746dc13-2a63-4073-b323-6804dd2fc447" />
@@ -41,7 +47,6 @@ Support for diverted plane:
 I hope this part of code never get used:
 
 <img width="872" height="378" alt="image" src="https://github.com/user-attachments/assets/de6aa694-652b-46cd-ab59-d5ffd9bac2ee" />
-
 
 <details>
 <summary>Oroginal README</summary>
