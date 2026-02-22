@@ -191,7 +191,7 @@
   },
   "flightradar": {
     "title": "Flight Tracking",
-    "published": false,
+    "published": true,
     "createdAt": "2026-02-16T15:00:00Z",
     "updatedAt": "2026-02-16T15:00:00Z",
     "description": "Track specific flight or flight nearby.",
