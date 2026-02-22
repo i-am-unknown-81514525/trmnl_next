@@ -6,6 +6,8 @@ The flight tracker can track on a specific location, airport (with various zoom 
 
 The input can be `airport:{icao},{zoom}`, `loc:{lat},{long},{zoom}` or `flight:{callsign},{fr24_hex}`.
 
+You can obtain `fr24_hex` by going to fr24 and find the flight, For example, searching `BAW34N` and track the flight will get you to `https://www.flightradar24.com/BAW34N/3e7082c3`, which `BAW34N` is the callsign and `3e7082c3` is the `fr24_hex`
+
 This require at least 4 greyscale level (It wouldn't render correctly with only 2 greyscale level)
 
 ### Added:
