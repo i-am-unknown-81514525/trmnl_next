@@ -271,10 +271,14 @@ export default async function FlightRadar(
       marginTop: 6,
     };
 
-    const formatter = new Intl.DateTimeFormat("en-GB", {
+    const formatter = new Intl.DateTimeFormat("en-US", {
       hour: "2-digit",
       minute: "2-digit",
       hour12: false,
+    });
+
+    const delta_formatter = new Intl.NumberFormat("en-US", {
+      signDisplay: "exceptZero",
     });
 
     if (data.tracking.kind === "flight") {
@@ -324,6 +328,10 @@ export default async function FlightRadar(
         attr += " - RADIO FAIL";
       } else if (data.tracking.flight.curr.squawk === "7700") {
         attr += " - EMERGENCY";
+      }
+
+      if (data.tracking.flight.curr.loc.vspeed) {
+        attr += ` | ${delta_formatter.format(data.tracking.flight.curr.loc.vspeed)} ft/s`;
       }
 
       return (
