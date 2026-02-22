@@ -27,6 +27,14 @@ This require at least 4 greyscale level (It wouldn't render correctly with only 
 
 1. Clone the repo (obviously)
 2. Create a `.env` file with `POSTGRES_PASSWORD`, `ADMIN_EMAIL` and `BETTER_AUTH_SECRET`
+   Also please set these for me:
+
+```
+DEBUG=true
+NODE_ENV=development
+AUTH_ENABLED=false
+```
+
 3. Run `docker compose up -d` (Assuming you have [docker](https://docs.docker.com/get-started/get-docker/) with docker compose)
 4. Go to `http://localhost:3000` (Assuming you are hosting and browsing on the same device)
 5. Login with the same email as set in `ADMIN_EMAIL`, and get the verify link in the log with `docker compose logs -f -n 2000`
