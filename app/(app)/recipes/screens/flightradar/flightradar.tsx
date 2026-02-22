@@ -659,7 +659,8 @@ export default async function FlightRadar(
                         }}
                       >
                         <div style={{ fontSize: 22, fontWeight: 900 }}>
-                          {n.flight.id.callsign || "N/A"} ({n.flight.id.hex})
+                          {n.flight.id.callsign || "N/A"}({n.flight.id.hex})
+                          {n.flight.squawk ? ` - ${n.flight.squawk}` : ""}
                         </div>
                         <div
                           style={{
@@ -670,7 +671,6 @@ export default async function FlightRadar(
                         >
                           {Math.round(alt)} m - {Math.round(speed)} kt -{" "}
                           {Math.round(track)}°{" "}
-                          {n.flight.squawk ? ` - ${n.flight.squawk}` : ""}
                         </div>
                       </div>
                       <div
@@ -693,7 +693,7 @@ export default async function FlightRadar(
                         <div
                           style={{
                             fontSize: 22,
-                            color: "#555",
+                            color: "#000",
                             fontWeight: 900,
                           }}
                         >
