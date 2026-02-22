@@ -446,7 +446,7 @@ export default async function FlightRadar(
             style={{
               display: "flex",
               flexDirection: "column",
-              gap: 4,
+              gap: 0,
               height: "100%",
               overflow: "hidden",
               padding: 0,
