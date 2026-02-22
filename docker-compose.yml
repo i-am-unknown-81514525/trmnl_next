@@ -38,6 +38,8 @@ services:
       - byos_network
     env_file:
       - .env
+    volumes:
+      - ./data:/app/data:ro
 
 volumes:
   postgres_data:
