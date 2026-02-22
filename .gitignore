@@ -51,3 +51,4 @@ sync.sh
 .idea
 
 **/*sample.json
+postgres_data/
