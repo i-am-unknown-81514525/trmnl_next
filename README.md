@@ -29,13 +29,14 @@ This require at least 4 greyscale level (It wouldn't render correctly with only 
 
 Updated UI:
 
-<img width="1446" height="894" alt="image" src="https://github.com/user-attachments/assets/90230958-4837-4911-868b-4f8e92ed856f" />
+<img width="1480" height="916" alt="image" src="https://github.com/user-attachments/assets/3cd97f38-5d68-41dc-bdfe-b2715a5a118e" />
+
+<img width="1468" height="910" alt="image" src="https://github.com/user-attachments/assets/31dbc61b-5c21-4c23-941a-2845aa552645" />
 
 
 Support for diverted plane:
 
 <img width="1492" height="924" alt="image" src="https://github.com/user-attachments/assets/8746dc13-2a63-4073-b323-6804dd2fc447" />
-
 
 I hope this part of code never get used:
 
