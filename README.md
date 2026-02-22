@@ -27,6 +27,11 @@ This require at least 4 greyscale level (It wouldn't render correctly with only 
 
 <img width="1692" height="1014" alt="image" src="https://github.com/user-attachments/assets/3019fa31-8165-4e65-bb9c-c0063638ef27" />
 
+Support for diverted plane:
+
+<img width="1492" height="924" alt="image" src="https://github.com/user-attachments/assets/8746dc13-2a63-4073-b323-6804dd2fc447" />
+
+
 I hope this part of code never get used:
 
 <img width="872" height="378" alt="image" src="https://github.com/user-attachments/assets/de6aa694-652b-46cd-ab59-d5ffd9bac2ee" />
