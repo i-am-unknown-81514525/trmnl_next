@@ -26,7 +26,7 @@ This require at least 4 greyscale level (It wouldn't render correctly with only 
 ### How to run:
 
 1. Clone the repo (obviously)
-2. Create a `.env` file with `POSTGRES_PASSWORD`
+2. Create a `.env` file with `POSTGRES_PASSWORD` and `BETTER_AUTH_SECRET`
 3. Run `docker compose up -d` (Assuming you have [docker](https://docs.docker.com/get-started/get-docker/) with docker compose)
 4. Go to `http://localhost:3000` (Assuming you are hosting and browsing on the same device)
 
