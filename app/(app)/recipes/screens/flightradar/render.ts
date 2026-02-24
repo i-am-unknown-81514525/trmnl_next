@@ -91,9 +91,9 @@ function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number) {
   const a =
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
     Math.cos(toRad(lat1)) *
-      Math.cos(toRad(lat2)) *
-      Math.sin(dLon / 2) *
-      Math.sin(dLon / 2);
+    Math.cos(toRad(lat2)) *
+    Math.sin(dLon / 2) *
+    Math.sin(dLon / 2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return R * c;
 }
@@ -216,7 +216,7 @@ export async function renderFrameForFlight(
   const cy = drawSize / 2;
   const rad = degToRad(flight.track || 0);
 
-  const doRotate = process.env.FLIGHTMAP_NO_ROTATE !== "1";
+  const doRotate = (process.env.FLIGHTMAP_NO_ROTATE || "1") !== "1";
 
   const nearby = opts.nearby ?? [];
 
@@ -556,7 +556,9 @@ export async function renderFrameForFlight(
     ctx.save();
     ctx.fillStyle = "#000";
     ctx.translate(cx, cy);
-    ctx.rotate(rad); // rotate so the glyph points along `flight.track` (use positive angle)
+    if (!doRotate) {
+      ctx.rotate(rad); // when not rotating, point glyph along track
+    }
     const planeSize = Math.max(10, Math.min(24, (width + height) / 60));
     ctx.beginPath();
     ctx.moveTo(0, -planeSize);
